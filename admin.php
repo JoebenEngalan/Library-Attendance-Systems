@@ -327,8 +327,11 @@ if (!isset($_SESSION['user_id'])) {
                                         <?php
                                             $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out
                                                     FROM attendance
-                                                    WHERE DATE(`date_in`) = CURDATE()
-                                                    ORDER BY time_out ASC, date_in ASC";
+                                                    WHERE DATE(date_in) = CURDATE()
+                                                    ORDER BY 
+                                                        (time_out IS NULL OR time_out = '') DESC,
+                                                        time_out ASC,
+                                                        date_in ASC";
                                             $query = $dbh->prepare($sql);
                                             $query->execute();
                                             $results = $query->fetchAll(PDO::FETCH_OBJ);
@@ -341,9 +344,7 @@ if (!isset($_SESSION['user_id'])) {
                                                         <!-- Time Out -->
                                                         <td>
                                                             <?php
-                                                            if ($row->time_out === '23:59:59') {
-                                                                echo "Didn't Timeout";
-                                                            } elseif (empty($row->time_out)) {
+                                                            if (empty($row->time_out)) {
                                                                 echo "Still Inside";
                                                             } else {
                                                                 echo date("h:i A", strtotime($row->time_out));
