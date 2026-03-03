@@ -3,20 +3,30 @@ session_start();
 error_reporting(0);
 include "includes/config.php";
 
+/* ✅ Timezone */
+date_default_timezone_set('Asia/Manila');
+
+/* ✅ Current date and time */
+$today = date("Y-m-d");
+$current_time = date("H:i:s");
+$current_time_12 = date("h:i A");
+
 // Check if form is submitted
 if (isset($_POST['Add'])) {
+
     $studid = $_POST['studid'];
     $lname = $_POST['inputLName'];
     $fname = $_POST['inputFName'];
     $courses = $_POST['course'];
-    $yearlevel = $_POST['yearlevel']; // New field
+    $yearlevel = $_POST['yearlevel'];
 
     // Validate input fields
     if (empty($studid) || empty($lname) || empty($fname) || empty($courses) || empty($yearlevel)) {
         echo '<script>alert("Empty Fields. Please try again")</script>';
     } else {
         try {
-            // Check if the student ID already exists
+
+            // Check duplicate student ID
             $checkSql = "SELECT COUNT(*) FROM studtbl WHERE studID = :studid";
             $checkQuery = $dbh->prepare($checkSql);
             $checkQuery->bindParam(':studid', $studid, PDO::PARAM_STR);
@@ -24,11 +34,13 @@ if (isset($_POST['Add'])) {
             $count = $checkQuery->fetchColumn();
 
             if ($count > 0) {
-                // If student ID already exists, show alert and stop insertion
+
                 echo '<script>alert("Student ID already exists! Please use a different ID.")</script>';
+
             } else {
-                // Insert new record
-                $sql = "INSERT INTO studtbl (studID, Lname, Fname, Course, YearLevel) 
+
+                // Insert student
+                $sql = "INSERT INTO studtbl (studID, Lname, Fname, Course, YearLevel)
                         VALUES (:studid, :inputLName, :inputFName, :course, :yearlevel)";
                 $query = $dbh->prepare($sql);
                 $query->bindParam(':studid', $studid, PDO::PARAM_STR);
@@ -36,19 +48,53 @@ if (isset($_POST['Add'])) {
                 $query->bindParam(':inputFName', $fname, PDO::PARAM_STR);
                 $query->bindParam(':course', $courses, PDO::PARAM_STR);
                 $query->bindParam(':yearlevel', $yearlevel, PDO::PARAM_STR);
-
                 $query->execute();
 
-                echo '<script>alert("Added successfully")</script>';
+                /* ✅ Attendance merge using defined time */
+                $fullname = $lname . ', ' . $fname;
+
+                $checkAttend = "
+                    SELECT attendance_id
+                    FROM attendance
+                    WHERE id_number = :id
+                    AND DATE(date_in) = :today
+                    AND time_out IS NULL
+                ";
+
+                $stmt = $dbh->prepare($checkAttend);
+                $stmt->execute([
+                    ':id' => $studid,
+                    ':today' => $today
+                ]);
+
+                if ($stmt->rowCount() == 0) {
+
+                    $attendanceSQL = "
+                        INSERT INTO attendance
+                        (id_number, fullname, course, yearlevel, date_in, time_in)
+                        VALUES
+                        (:id, :fullname, :course, :year, :today, :time)
+                    ";
+
+                    $stmt = $dbh->prepare($attendanceSQL);
+                    $stmt->execute([
+                        ':id' => $studid,
+                        ':fullname' => $fullname,
+                        ':course' => $courses,
+                        ':year' => $yearlevel,
+                        ':today' => $today,
+                        ':time' => $current_time
+                    ]);
+                }
+                echo "<script>alert('✅ $fullname is now registered and Time in: $current_time_12')</script>";
                 echo "<script>window.location.href ='records.php'</script>";
             }
 
         } catch (PDOException $e) {
-            echo '<script>alert("Error: ' . $e->getMessage() . '")</script>';
+            echo '<script>alert("Error: '.$e->getMessage().'")</script>';
         }
     }
 }
-
 ?>
 
 <!-- Add Student Modal -->

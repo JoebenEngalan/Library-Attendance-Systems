@@ -262,34 +262,44 @@ if (!isset($_SESSION['user_id'])) {
 
                             <div class="card-body">
                                 <?php
-                                $action = $_POST['action'] ?? null;
-                                $selected_month = date("Y-m");
-                                $selected_year = date("Y");
-                                $selected_month_num = date("m");
+                                    $action = $_POST['action'] ?? null;
 
-                                if ($action === "filter" && !empty($_POST['month'])) {
-                                    $selected_month = $_POST["month"];
+                                    /* ✅ Default = CURRENT MONTH */
+                                    $selected_month = date("Y-m");
                                     list($selected_year, $selected_month_num) = explode("-", $selected_month);
 
-                                    $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out 
-                                            FROM attendance
-                                            WHERE YEAR(date_in) = :year
-                                            AND MONTH(date_in) = :month
-                                            ORDER BY date_in ASC, time_in ASC";
+                                    /* ✅ If user selects another month */
+                                    if ($action === "filter" && !empty($_POST['month'])) {
+                                        $selected_month = $_POST["month"];
+                                        list($selected_year, $selected_month_num) = explode("-", $selected_month);
+                                    }
 
-                                    $query = $dbh->prepare($sql);
-                                    $query->bindParam(':year', $selected_year, PDO::PARAM_INT);
-                                    $query->bindParam(':month', $selected_month_num, PDO::PARAM_INT);
-                                    $query->execute();
-                                } else {
-                                    $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out 
-                                            FROM attendance
-                                            ORDER BY date_in ASC, time_in ASC";
-                                    $query = $dbh->prepare($sql);
-                                    $query->execute();
-                                }
+                                    /* ✅ Show ALL only when button clicked */
+                                    if ($action === "all") {
 
-                                $results = $query->fetchAll(PDO::FETCH_OBJ);
+                                        $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out
+                                                FROM attendance
+                                                ORDER BY date_in ASC, time_in ASC";
+
+                                        $query = $dbh->prepare($sql);
+                                        $query->execute();
+
+                                    } else {
+
+                                        /* ✅ CURRENT OR SELECTED MONTH ONLY */
+                                        $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out
+                                                FROM attendance
+                                                WHERE YEAR(date_in) = :year
+                                                AND MONTH(date_in) = :month
+                                                ORDER BY date_in ASC, time_in ASC";
+
+                                        $query = $dbh->prepare($sql);
+                                        $query->bindParam(':year', $selected_year, PDO::PARAM_INT);
+                                        $query->bindParam(':month', $selected_month_num, PDO::PARAM_INT);
+                                        $query->execute();
+                                    }
+
+                                    $results = $query->fetchAll(PDO::FETCH_OBJ);
                                 ?>
 
                                 <!-- Filter Form -->
