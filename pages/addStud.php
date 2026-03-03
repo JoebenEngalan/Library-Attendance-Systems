@@ -86,7 +86,7 @@ if (isset($_POST['Add'])) {
                         ':time' => $current_time
                     ]);
                 }
-                echo "<script>alert('✅ $fullname is now registered and Time in: $current_time_12')</script>";
+                echo "<script>alert('✅ $fullname, $studid of $courses, $yearlevel is now registered and Time in: $today, $current_time_12')</script>";
                 echo "<script>window.location.href ='records.php'</script>";
             }
 
@@ -94,7 +94,7 @@ if (isset($_POST['Add'])) {
             echo '<script>alert("Error: '.$e->getMessage().'")</script>';
         }
     }
-}
+} 
 ?>
 
 <!-- Add Student Modal -->
