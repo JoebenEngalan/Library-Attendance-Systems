@@ -5,6 +5,22 @@ error_reporting(0);
 include "includes/config.php";
 require_once "includes/session_check.php";
 
+if ($action === "filter" && !empty($_POST['month'])) {
+
+    $_SESSION['selected_month'] = $_POST['month'];
+
+    header("Location: ".$_SERVER['PHP_SELF']);
+    exit;
+}
+
+if ($action === "all") {
+
+    $_SESSION['selected_month'] = "all";
+
+    header("Location: ".$_SERVER['PHP_SELF']);
+    exit;
+}
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
@@ -262,22 +278,15 @@ if (!isset($_SESSION['user_id'])) {
 
                             <div class="card-body">
                                 <?php
-                                    $action = $_POST['action'] ?? null;
+                                    $selected_month = $_SESSION['selected_month'] ?? date("Y-m");
 
-                                    /* ✅ Default = CURRENT MONTH */
-                                    $selected_month = date("Y-m");
-                                    list($selected_year, $selected_month_num) = explode("-", $selected_month);
-
-                                    /* ✅ If user selects another month */
-                                    if ($action === "filter" && !empty($_POST['month'])) {
-                                        $selected_month = $_POST["month"];
-                                        list($selected_year, $selected_month_num) = explode("-", $selected_month);
-                                    }
+                                   
 
                                     /* ✅ Show ALL only when button clicked */
-                                    if ($action === "all") {
+                                    if ($selected_month === "all") {
 
-                                        $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out
+                                        $sql = "SELECT id_number, fullname, course, yearlevel,
+                                                date_in, time_in, time_out
                                                 FROM attendance
                                                 ORDER BY date_in ASC, time_in ASC";
 
@@ -286,11 +295,14 @@ if (!isset($_SESSION['user_id'])) {
 
                                     } else {
 
-                                        /* ✅ CURRENT OR SELECTED MONTH ONLY */
-                                        $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out
+                                        list($selected_year, $selected_month_num)
+                                            = explode("-", $selected_month);
+
+                                        $sql = "SELECT id_number, fullname, course, yearlevel,
+                                                date_in, time_in, time_out
                                                 FROM attendance
-                                                WHERE YEAR(date_in) = :year
-                                                AND MONTH(date_in) = :month
+                                                WHERE YEAR(date_in)=:year
+                                                AND MONTH(date_in)=:month
                                                 ORDER BY date_in ASC, time_in ASC";
 
                                         $query = $dbh->prepare($sql);
