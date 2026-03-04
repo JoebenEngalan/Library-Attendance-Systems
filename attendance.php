@@ -5,20 +5,22 @@ error_reporting(0);
 include "includes/config.php";
 require_once "includes/session_check.php";
 
-if ($action === "filter" && !empty($_POST['month'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $_SESSION['selected_month'] = $_POST['month'];
+    if (isset($_POST['action'])) {
 
-    header("Location: ".$_SERVER['PHP_SELF']);
-    exit;
-}
+        if ($_POST['action'] === 'filter' && !empty($_POST['month'])) {
+            $_SESSION['selected_month'] = $_POST['month'];
+        }
 
-if ($action === "all") {
+        if ($_POST['action'] === 'all') {
+            $_SESSION['selected_month'] = 'all';
+        }
+    }
 
-    $_SESSION['selected_month'] = "all";
-
-    header("Location: ".$_SERVER['PHP_SELF']);
-    exit;
+    // ✅ VERY IMPORTANT REDIRECT
+    header("Location: attendance.php");
+    exit();
 }
 
 if (!isset($_SESSION['user_id'])) {
@@ -278,10 +280,9 @@ if (!isset($_SESSION['user_id'])) {
 
                             <div class="card-body">
                                 <?php
+                                
                                     $selected_month = $_SESSION['selected_month'] ?? date("Y-m");
-
-                                   
-
+                                
                                     /* ✅ Show ALL only when button clicked */
                                     if ($selected_month === "all") {
 
