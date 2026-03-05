@@ -54,6 +54,7 @@ if ($student->status !== "ACTIVE") {
     exit();
 }
 
+
 // ✅ Student details
 $fullname = htmlspecialchars($student->Lname . ", " . $student->Fname);
 $course = htmlspecialchars($student->Course);
