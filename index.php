@@ -25,7 +25,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
 // Step 2: Display message from attend.php
 $message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
 unset($_SESSION['message']);
-
 ?>
 
 <!DOCTYPE html>
@@ -79,7 +78,7 @@ unset($_SESSION['message']);
                         </form>
 
                         <?php if ($message): ?>
-                            <div class="mt-4 fw-bold fs-3">
+                            <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
                                 <?php echo $message; ?>
                             </div>
                         <?php endif; ?>

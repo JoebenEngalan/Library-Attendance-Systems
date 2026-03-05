@@ -33,7 +33,23 @@ $queryStudent->execute();
 $student = $queryStudent->fetch(PDO::FETCH_OBJ);
 
 if (!$student) {
-    $_SESSION['message'] = "<span style='color:red;'>❌ Student ID not found Pls Register.</span>";
+    $_SESSION['message'] = "<span style='color:red;'>❌ Student ID not found. Please register.</span>";
+    header("Location: ../index.php");
+    exit();
+}
+
+// ❌ Block non-active students
+if ($student->status !== "ACTIVE") {
+
+    $statusMessage = [
+        "SUSPENDED" => "⛔ Your account is SUSPENDED. Contact the administrator.",
+        "INACTIVE" => "⚠️ Your account is INACTIVE. Contact the administrator.",
+        "GRADUATED" => "🎓 You are already GRADUATED."
+    ];
+
+    $msg = $statusMessage[$student->status] ?? "❌ Account not allowed.";
+
+    $_SESSION['message'] = "<span style='color:red;'>$msg</span>";
     header("Location: ../index.php");
     exit();
 }
