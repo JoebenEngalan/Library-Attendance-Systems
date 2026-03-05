@@ -6,7 +6,6 @@ include "includes/config.php";
 require_once "includes/session_check.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     if (isset($_POST['action'])) {
 
         if ($_POST['action'] === 'filter' && !empty($_POST['month'])) {
@@ -17,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['selected_month'] = 'all';
         }
     }
-
     // ✅ VERY IMPORTANT REDIRECT
     header("Location: attendance.php");
     exit();
