@@ -443,42 +443,50 @@ $currentYear  = date('Y');
                                     label: "Total Attendance",
                                     data: result.data,
                                     backgroundColor: result.colors,
-                                    borderWidth: 1
-                                }],
-                                datalabels: {
-                                color: '#fff',
-                                font: {
-                                    size: 22,
-                                    weight: 'bold'
-                                },
-                                anchor: 'center',
-                                align: 'center'
-                            }
+                                    borderWidth: 1,
+                                    offset: result.data.map(() => 0) // needed for explode
+                                }]
                             },
+
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
+
                                 plugins: {
                                     legend: {
                                         position: "right"
                                     },
+
                                     tooltip: {
                                         callbacks: {
                                             label: function(context) {
 
-                                                let total =
-                                                    context.dataset.data.reduce((a,b)=>a+b,0);
-
+                                                let total = context.dataset.data.reduce((a,b)=>a+b,0);
                                                 let value = context.raw;
-                                                let percent =
-                                                    ((value / total) * 100).toFixed(1);
+                                                let percent = ((value / total) * 100).toFixed(1);
 
                                                 return `${context.label}: ${value} (${percent}%)`;
                                             }
                                         }
                                     }
+                                },
+
+                                /* CLICK TO EXPLODE SLICE */
+                                onClick: function(evt, elements) {
+
+                                    if (elements.length > 0) {
+
+                                        const index = elements[0].index;
+                                        const dataset = this.data.datasets[0];
+
+                                        dataset.offset[index] =
+                                            dataset.offset[index] === 30 ? 0 : 30;
+
+                                        this.update();
+                                    }
                                 }
                             },
+
                             plugins: [{
                                 id: 'pieValues',
                                 afterDatasetsDraw(chart) {
@@ -496,7 +504,7 @@ $currentYear  = date('Y');
 
                                         ctx.save();
                                         ctx.fillStyle = "#ffffff";
-                                        ctx.font = "bold 12px Arial";
+                                        ctx.font = "bold 16px Arial"; // bigger number
                                         ctx.textAlign = "center";
                                         ctx.textBaseline = "middle";
                                         ctx.fillText(value, pos.x, pos.y);
@@ -506,34 +514,43 @@ $currentYear  = date('Y');
                             }]
                         });
                     }
-
                 })
                 .catch(err => console.error("Chart error:", err));
             });
 
 
             /* Export High-Res PNG Function */
-            function exportHighResChartPNG({canvasId,title,subtitle,logoPath,
-                scale = 1 /* ⭐ 3 = high resolution (2–4 recommended) */ }) 
-                {
+            function exportHighResChartPNG({
+                canvasId,
+                title = "Attendance by Course",
+                subtitle = "MonCast Learning Resource Center",
+                logoPath = "assets/img/Logo-chrome-192x192.png",
+                scale = 6 // ⭐ 4–6 gives very sharp PNG
+            }) {
+
                 const sourceCanvas = document.getElementById(canvasId);
+
                 if (!sourceCanvas) {
                     alert("Canvas not found: " + canvasId);
                     return;
                 }
-                const headerHeight = 120;
 
-                /* Create export canvas */  
+                const headerHeight = 130;
+
                 const exportCanvas = document.createElement("canvas");
                 const ctx = exportCanvas.getContext("2d");
 
                 const width = sourceCanvas.width;
                 const height = sourceCanvas.height;
 
+                /* Increase resolution */
                 exportCanvas.width = width * scale;
                 exportCanvas.height = (height + headerHeight) * scale;
 
                 ctx.scale(scale, scale);
+
+                /* Prevent blur */
+                ctx.imageSmoothingEnabled = true;
 
                 /* White background */
                 ctx.fillStyle = "#ffffff";
@@ -547,22 +564,28 @@ $currentYear  = date('Y');
                     /* Logo */
                     ctx.drawImage(logo, 20, 20, 80, 80);
 
-                    /* Header text */
+                    /* Title */
                     ctx.fillStyle = "#000";
-                    ctx.font = "bold 22px Arial";
+                    ctx.font = "bold 26px Arial";
                     ctx.fillText(title, 120, 55);
 
-                    ctx.font = "16px Arial";
-                    ctx.fillText(subtitle, 120, 80);
+                    /* Subtitle */
+                    ctx.font = "18px Arial";
+                    ctx.fillText(subtitle, 120, 85);
 
                     /* Chart */
-                    ctx.drawImage(sourceCanvas, 0, headerHeight);
+                    ctx.drawImage(sourceCanvas, 0, headerHeight, width, height);
 
-                    /* Export */
-                    const link = document.createElement("a");
-                    link.download = `${canvasId}_HD.png`;
-                    link.href = exportCanvas.toDataURL("image/png", 1.0);
-                    link.click();
+                    /* Export using Blob (better quality) */
+                    exportCanvas.toBlob(function(blob) {
+
+                        const link = document.createElement("a");
+                        link.download = canvasId + "_MonCAST.png";
+                        link.href = URL.createObjectURL(blob);
+                        link.click();
+
+                    }, "image/png", 1.0);
+
                 };
 
                 logo.onerror = function () {
@@ -570,7 +593,7 @@ $currentYear  = date('Y');
                 };
 
                 logo.src = logoPath;
-            }        
+            }       
         </script>
         <?php include('pages/scripts.php');?>
     </body>
