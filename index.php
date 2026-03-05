@@ -76,13 +76,11 @@ unset($_SESSION['message']);
 
                             </div>
                         </form>
-
                         <?php if ($message): ?>
                             <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
                                 <?php echo $message; ?>
                             </div>
                         <?php endif; ?>
-
                     </div>
 
                 </div>
