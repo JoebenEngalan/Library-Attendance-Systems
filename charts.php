@@ -572,7 +572,6 @@ $currentYear  = date('Y');
                 logo.src = logoPath;
             }        
         </script>
-
         <?php include('pages/scripts.php');?>
     </body>
 </html>
