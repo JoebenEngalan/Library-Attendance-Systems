@@ -33,7 +33,7 @@ $queryStudent->execute();
 $student = $queryStudent->fetch(PDO::FETCH_OBJ);
 
 if (!$student) {
-    $_SESSION['message'] = "<span style='color:red;'>❌ Student ID not found. Please register.</span>";
+    $_SESSION['message'] = "<span style='color:red;'>❌ Student ID not found. Please register. Contact the administrator.</span>";
     header("Location: ../index.php");
     exit();
 }
