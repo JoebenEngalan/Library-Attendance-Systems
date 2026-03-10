@@ -113,7 +113,7 @@ if (isset($_POST['Add'])) {
                         <div class="form-floating mb-3">
                             <input class="form-control" name="studid" id="studid" type="text" 
                             autocomplete="off" placeholder="Student ID" required 
-                            onkeydown="return /[a-zA-Z0-9]+/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight'].includes(event.key)"/>
+                            onkeydown="return /[a-zA-Z0-9]+/i.test(event.key) || ['Delete','ArrowLeft','ArrowRight'].includes(event.key)"/>
                             <label for="studid">Student ID</label>
                         </div>
                         
