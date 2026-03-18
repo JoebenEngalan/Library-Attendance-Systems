@@ -3,6 +3,8 @@ session_start();
 error_reporting(0);
 include "includes/config.php";
 
+
+
 /* ✅ Timezone */
 date_default_timezone_set('Asia/Manila');
 
@@ -10,7 +12,7 @@ date_default_timezone_set('Asia/Manila');
 $today = date("Y-m-d");
 $current_time = date("H:i:s");
 $current_time_12 = date("h:i A");
-
+//echo "Current Date: $today, Current Time: $current_time_12";
 // Check if form is submitted
 if (isset($_POST['Add'])) {
 
