@@ -140,7 +140,9 @@ if ($stmt->rowCount() > 0) {
                                             <?php
                                                 $sql = "SELECT id_number, fullname, course, yearlevel, date_in, time_in, time_out
                                                         FROM attendance
-                                                        WHERE time_out = '23:59:59'
+                                                        WHERE time_out IS NULL 
+                                                        OR time_out = '23:59:59'
+                                                        OR time_out = ''
                                                         ORDER BY date_in DESC, time_in ASC";
 
                                                 $query = $dbh->prepare($sql);
@@ -151,7 +153,19 @@ if ($stmt->rowCount() > 0) {
                                         <?php foreach ($results as $row): ?>
                                         <tr class="table-danger">
 
-                                            <td>Didn't Timeout</td>
+                                            <td>
+                                                <?php 
+                                                    $timeout = trim($row->time_out);
+
+                                                    if ($timeout === "23:59:59") {
+                                                        echo "Didn't Timeout";
+                                                    } elseif ($timeout === "" || $timeout === null) {
+                                                        echo "Still Inside";
+                                                    } else {
+                                                        echo date("h:i A", strtotime($timeout));
+                                                    }
+                                                ?>
+                                            </td>
 
                                             <td>
                                                 <?php echo date("h:i A", strtotime($row->time_in)); ?>
