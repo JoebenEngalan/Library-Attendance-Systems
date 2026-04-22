@@ -33,7 +33,7 @@ $queryStudent->execute();
 $student = $queryStudent->fetch(PDO::FETCH_OBJ);
 
 if (!$student) {
-    $_SESSION['message'] = "<span style='color:red;'>❌ Student ID not found. Please register to the Library Administrator.</span>";
+    $_SESSION['message'] = "<span style='color:red;'>❌ Student ID not found in the system. Please register to the Library Administrator.</span>";
     header("Location: ../index.php");
     exit();
 }
@@ -42,8 +42,8 @@ if (!$student) {
 if ($student->status !== "ACTIVE") {
 
     $statusMessage = [
-        "SUSPENDED" => "⛔ Your account is SUSPENDED. Contact the administrator.",
-        "INACTIVE" => "⚠️ Your account is INACTIVE. Contact the administrator.",
+        "SUSPENDED" => "⛔ Your account is SUSPENDED. Contact the Library administrator.",
+        "INACTIVE" => "⚠️ Your account is INACTIVE. Contact the Library administrator.",
         "GRADUATED" => "🎓 You are already GRADUATED."
     ];
 
