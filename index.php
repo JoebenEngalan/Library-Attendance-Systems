@@ -42,7 +42,12 @@ unset($_SESSION['message']);
                 <div class="col-12 col-sm-10 col-md-8 col-xl-6">
 
                     <div class="text-center text-white">
-
+                                                     
+                        <?php if ($message): ?>
+                            <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
+                                <?php echo $message; ?>
+                            </div>
+                        <?php endif; ?>
                         <h1 class="mb-1" id="clock"></h1>
                         <h2 class="mb-4" id="date"></h2>
 
@@ -76,11 +81,7 @@ unset($_SESSION['message']);
 
                             </div>
                         </form>
-                        <?php if ($message): ?>
-                            <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
-                                <?php echo $message; ?>
-                            </div>
-                        <?php endif; ?>
+                        
                     </div>
 
                 </div>

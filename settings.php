@@ -20,7 +20,7 @@ $message = "";
 $messageType = "";
 
 // Manual Time Out Process
-if (isset($_POST['manual_timeout'])) {
+if (isset($_POST['manual_timeout'])){
 
 $id_number = $_POST['id_number'];
 $date_out = $_POST['date_out'];
@@ -30,12 +30,14 @@ $sql = "UPDATE attendance
         SET time_out = :time_out
         WHERE id_number = :id_number
         AND DATE(date_in) = :date_out
-        AND time_out = '23:59:59'";
+        AND (
+            time_out = '23:59:59'
+            OR time_out IS NULL
+        )
+        LIMIT 1";
 
 $stmt = $dbh->prepare($sql);
 $stmt->execute([
-
-
     ':time_out' => $time_out,
     ':id_number' => $id_number,
     ':date_out' => $date_out
@@ -49,7 +51,122 @@ if ($stmt->rowCount() > 0) {
     $messageType = "danger";
 }
 }
+
+/*
+|--------------------------------------------------------------------------
+| 4th Year → Alumni
+|--------------------------------------------------------------------------
+*/
+if (isset($_POST['graduate_students'])) {
+
+    $sql = "UPDATE studtbl
+            SET 
+                YearLevel = 'None',
+                Course = 'Alumni',
+                status = 'GRADUATED',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE YearLevel = '4th Year'
+            AND status = 'ACTIVE'";
+
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute();
+
+    $_SESSION['message'] = "
+    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
+        ✅ " . $stmt->rowCount() . " student(s) graduated and moved to Alumni.
+    </div>";
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+/*
+|--------------------------------------------------------------------------
+| 3rd Year → 4th Year
+|--------------------------------------------------------------------------
+*/
+if (isset($_POST['promote_third_year'])) {
+
+    $sql = "UPDATE studtbl
+            SET 
+                YearLevel = '4th Year',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE YearLevel = '3rd Year'
+            AND status = 'ACTIVE'";
+
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute();
+
+    $_SESSION['message'] = "
+    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
+        ✅ " . $stmt->rowCount() . " student(s) promoted from 3rd Year to 4th Year.
+    </div>";
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+/*
+|--------------------------------------------------------------------------
+| 2nd Year → 3rd Year
+|--------------------------------------------------------------------------
+*/
+if (isset($_POST['promote_second_year'])) {
+
+    $sql = "UPDATE studtbl
+            SET 
+                YearLevel = '3rd Year',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE YearLevel = '2nd Year'
+            AND status = 'ACTIVE'";
+
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute();
+
+    $_SESSION['message'] = "
+    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
+        ✅ " . $stmt->rowCount() . " student(s) promoted from 2nd Year to 3rd Year.
+    </div>";
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+/*
+|--------------------------------------------------------------------------
+| 1st Year → 2nd Year
+|--------------------------------------------------------------------------
+*/
+if (isset($_POST['promote_first_year'])) {
+
+    $sql = "UPDATE studtbl
+            SET 
+                YearLevel = '2nd Year',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE YearLevel = '1st Year'
+            AND status = 'ACTIVE'";
+
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute();
+
+    $_SESSION['message'] = "
+    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
+        ✅ " . $stmt->rowCount() . " student(s) promoted from 1st Year to 2nd Year.
+    </div>";
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
 ?>
+
+<!-- Display Session Message -->
+<?php
+if (isset($_SESSION['message'])) {
+    echo $_SESSION['message'];
+    unset($_SESSION['message']);
+}
+?>
+
 <html lang="en"> 
 	<?php include('pages/head.php');?>
     <body class="sb-nav-fixed">
@@ -213,7 +330,58 @@ if ($stmt->rowCount() > 0) {
                             </div>
                             
                         </div>
-                              
+                         
+                        <div class="card mb-4"> 
+                            <div class="card-header">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                                Stutend Rollover (Promote Students to Next Year Level or Graduate to Alumni)
+                            </div>
+                            <div class="card-body">
+
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+                                    <!-- 4th → Alumni -->
+                                    <form method="POST">
+                                        <button type="submit"
+                                                name="graduate_students"
+                                                onclick="return confirm('Graduate all 4th Year students to Alumni?')"
+                                                style="padding:10px 20px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            4th Year → Alumni
+                                        </button>
+                                    </form>
+
+                                    <!-- 3rd → 4th -->
+                                    <form method="POST">
+                                        <button type="submit"
+                                                name="promote_third_year"
+                                                onclick="return confirm('Promote all 3rd Year students to 4th Year?')"
+                                                style="padding:10px 20px;background:#ffc107;color:black;border:none;border-radius:5px;cursor:pointer;">
+                                            3rd Year → 4th Year
+                                        </button>
+                                    </form>
+
+                                    <!-- 2nd → 3rd -->
+                                    <form method="POST">
+                                        <button type="submit"
+                                                name="promote_second_year"
+                                                onclick="return confirm('Promote all 2nd Year students to 3rd Year?')"
+                                                style="padding:10px 20px;background:#17a2b8;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            2nd Year → 3rd Year
+                                        </button>
+                                    </form>
+
+                                    <!-- 1st → 2nd -->
+                                    <form method="POST">
+                                        <button type="submit"
+                                                name="promote_first_year"
+                                                onclick="return confirm('Promote all 1st Year students to 2nd Year?')"
+                                                style="padding:10px 20px;background:#007bff;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            1st Year → 2nd Year
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>                             
+                        </div>                 
                     </div>
                 </main>
                 <?php include('pages/footer.php');?>
