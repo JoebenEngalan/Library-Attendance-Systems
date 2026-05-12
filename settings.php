@@ -157,6 +157,124 @@ if (isset($_POST['promote_first_year'])) {
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
+
+
+if (isset($_POST['rollover_students'])) {
+
+    try {
+
+        // Start transaction
+        $dbh->beginTransaction();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 4th Year → Alumni
+        |--------------------------------------------------------------------------
+        */
+        $sql1 = "UPDATE studtbl
+                 SET 
+                    YearLevel = 'None',
+                    Course = 'Alumni',
+                    status = 'GRADUATED',
+                    updated_at = CURRENT_TIMESTAMP
+                 WHERE YearLevel = '4'
+                 AND status = 'ACTIVE'";
+
+        $stmt1 = $dbh->prepare($sql1);
+        $stmt1->execute();
+
+        $graduates = $stmt1->rowCount();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 3rd Year → 4th Year
+        |--------------------------------------------------------------------------
+        */
+        $sql2 = "UPDATE studtbl
+                 SET 
+                    YearLevel = '4',
+                    updated_at = CURRENT_TIMESTAMP
+                 WHERE YearLevel = '3'
+                 AND status = 'ACTIVE'";
+
+        $stmt2 = $dbh->prepare($sql2);
+        $stmt2->execute();
+
+        $third = $stmt2->rowCount();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2nd Year → 3rd Year
+        |--------------------------------------------------------------------------
+        */
+        $sql3 = "UPDATE studtbl
+                 SET 
+                    YearLevel = '3',
+                    updated_at = CURRENT_TIMESTAMP
+                 WHERE YearLevel = '2'
+                 AND status = 'ACTIVE'";
+
+        $stmt3 = $dbh->prepare($sql3);
+        $stmt3->execute();
+
+        $second = $stmt3->rowCount();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 1st Year → 2nd Year
+        |--------------------------------------------------------------------------
+        */
+        $sql4 = "UPDATE studtbl
+                 SET 
+                    YearLevel = '2',
+                    updated_at = CURRENT_TIMESTAMP
+                 WHERE YearLevel = '1'
+                 AND status = 'ACTIVE'";
+
+        $stmt4 = $dbh->prepare($sql4);
+        $stmt4->execute();
+
+        $first = $stmt4->rowCount();
+
+        // Commit all changes
+        $dbh->commit();
+
+        $_SESSION['message'] = "
+        <div style='
+            padding:10px;
+            background:#d4edda;
+            color:#155724;
+            border-radius:5px;
+            margin-bottom:10px;'>
+
+            ✅ Student rollover completed successfully.<br><br>
+
+            🎓 Graduated to Alumni: {$graduates}<br>
+            📘 3rd → 4th Year: {$third}<br>
+            📗 2nd → 3rd Year: {$second}<br>
+            📙 1st → 2nd Year: {$first}
+        </div>";
+
+    } catch (Exception $e) {
+
+        $dbh->rollBack();
+
+        $_SESSION['message'] = "
+        <div style='
+            padding:10px;
+            background:#f8d7da;
+            color:#721c24;
+            border-radius:5px;
+            margin-bottom:10px;'>
+
+            ❌ Error during rollover process.
+        </div>";
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
 ?>
 
 <!-- Display Session Message -->
@@ -379,6 +497,16 @@ if (isset($_SESSION['message'])) {
                                             1st Year → 2nd Year
                                         </button>
                                     </form>
+
+                                    <!-- Single Button -->
+                                    <form method="POST">
+                                        <button type="submit"
+                                                name="rollover_students"
+                                                onclick="return confirm('Run yearly student rollover process?')"
+                                                style="padding:10px 20px;background:#8f0419;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            Run Student Yearly Rollover
+                                        </button>
+                                    </form>           
                                 </div>
                             </div>                             
                         </div>                 
