@@ -52,112 +52,6 @@ if ($stmt->rowCount() > 0) {
 }
 }
 
-/*
-|--------------------------------------------------------------------------
-| 4th Year → Alumni
-|--------------------------------------------------------------------------
-*/
-if (isset($_POST['graduate_students'])) {
-
-    $sql = "UPDATE studtbl
-            SET 
-                YearLevel = 'None',
-                Course = 'Alumni',
-                status = 'GRADUATED',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE YearLevel = '4th Year'
-            AND status = 'ACTIVE'";
-
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-
-    $_SESSION['message'] = "
-    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
-        ✅ " . $stmt->rowCount() . " student(s) graduated and moved to Alumni.
-    </div>";
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-/*
-|--------------------------------------------------------------------------
-| 3rd Year → 4th Year
-|--------------------------------------------------------------------------
-*/
-if (isset($_POST['promote_third_year'])) {
-
-    $sql = "UPDATE studtbl
-            SET 
-                YearLevel = '4th Year',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE YearLevel = '3rd Year'
-            AND status = 'ACTIVE'";
-
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-
-    $_SESSION['message'] = "
-    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
-        ✅ " . $stmt->rowCount() . " student(s) promoted from 3rd Year to 4th Year.
-    </div>";
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-/*
-|--------------------------------------------------------------------------
-| 2nd Year → 3rd Year
-|--------------------------------------------------------------------------
-*/
-if (isset($_POST['promote_second_year'])) {
-
-    $sql = "UPDATE studtbl
-            SET 
-                YearLevel = '3rd Year',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE YearLevel = '2nd Year'
-            AND status = 'ACTIVE'";
-
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-
-    $_SESSION['message'] = "
-    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
-        ✅ " . $stmt->rowCount() . " student(s) promoted from 2nd Year to 3rd Year.
-    </div>";
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-/*
-|--------------------------------------------------------------------------
-| 1st Year → 2nd Year
-|--------------------------------------------------------------------------
-*/
-if (isset($_POST['promote_first_year'])) {
-
-    $sql = "UPDATE studtbl
-            SET 
-                YearLevel = '2nd Year',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE YearLevel = '1st Year'
-            AND status = 'ACTIVE'";
-
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-
-    $_SESSION['message'] = "
-    <div style='padding:10px;background:#d4edda;color:#155724;border-radius:5px;margin-bottom:10px;'>
-        ✅ " . $stmt->rowCount() . " student(s) promoted from 1st Year to 2nd Year.
-    </div>";
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
 
 if (isset($_POST['rollover_students'])) {
 
@@ -458,55 +352,105 @@ if (isset($_SESSION['message'])) {
 
                                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
 
-                                    <!-- 4th → Alumni -->
-                                    <form method="POST">
-                                        <button type="submit"
-                                                name="graduate_students"
-                                                onclick="return confirm('Graduate all 4th Year students to Alumni?')"
-                                                style="padding:10px 20px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;">
-                                            4th Year → Alumni
-                                        </button>
-                                    </form>
-
-                                    <!-- 3rd → 4th -->
-                                    <form method="POST">
-                                        <button type="submit"
-                                                name="promote_third_year"
-                                                onclick="return confirm('Promote all 3rd Year students to 4th Year?')"
-                                                style="padding:10px 20px;background:#ffc107;color:black;border:none;border-radius:5px;cursor:pointer;">
-                                            3rd Year → 4th Year
-                                        </button>
-                                    </form>
-
-                                    <!-- 2nd → 3rd -->
-                                    <form method="POST">
-                                        <button type="submit"
-                                                name="promote_second_year"
-                                                onclick="return confirm('Promote all 2nd Year students to 3rd Year?')"
-                                                style="padding:10px 20px;background:#17a2b8;color:white;border:none;border-radius:5px;cursor:pointer;">
-                                            2nd Year → 3rd Year
-                                        </button>
-                                    </form>
-
-                                    <!-- 1st → 2nd -->
-                                    <form method="POST">
-                                        <button type="submit"
-                                                name="promote_first_year"
-                                                onclick="return confirm('Promote all 1st Year students to 2nd Year?')"
-                                                style="padding:10px 20px;background:#007bff;color:white;border:none;border-radius:5px;cursor:pointer;">
-                                            1st Year → 2nd Year
-                                        </button>
-                                    </form>
-
-                                    <!-- Single Button -->
-                                    <form method="POST">
-                                        <button type="submit"
-                                                name="rollover_students"
-                                                onclick="return confirm('Run yearly student rollover process?')"
-                                                style="padding:10px 20px;background:#8f0419;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                    <!-- Rollover Button -->
+                                    <form method="POST" id="rolloverForm">
+                                        <button type="button"
+                                                onclick="document.getElementById('rolloverModal').style.display='flex'"
+                                                style="padding:10px 20px;background:#5678f5;color:white;border:none;border-radius:5px;cursor:pointer;">
                                             Run Student Yearly Rollover
                                         </button>
-                                    </form>           
+                                    </form>
+
+                                    <!-- Modal Overlay -->
+                                    <div id="rolloverModal" style="
+                                        display:none;
+                                        position:fixed;
+                                        top:0; left:0;
+                                        width:100%; height:100%;
+                                        background:rgba(0,0,0,0.5);
+                                        z-index:9999;
+                                        justify-content:center;
+                                        align-items:center;">
+
+                                        <!-- Modal Box -->
+                                        <div style="
+                                            background:white;
+                                            border-radius:10px;
+                                            padding:30px;
+                                            max-width:420px;
+                                            width:90%;
+                                            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+                                            text-align:center;">
+
+                                            <!-- Icon -->
+                                            <div style="font-size:48px; margin-bottom:10px;">⚠️</div>
+
+                                            <!-- Title -->
+                                            <h3 style="margin:0 0 10px; color:#5678f5;">Confirm Student Rollover</h3>
+
+                                            <!-- Description -->
+                                            <p style="color:#555; font-size:14px; margin-bottom:15px;">
+                                                This will update <strong>all active students</strong>:
+                                            </p>
+
+                                            <!-- Rollover Summary -->
+                                            <div style="
+                                                background:#f9f9f9;
+                                                border:1px solid #ddd;
+                                                border-radius:8px;
+                                                padding:12px;
+                                                text-align:left;
+                                                font-size:14px;
+                                                color:#333;
+                                                margin-bottom:20px;
+                                                line-height:2;">
+                                                📙 1st Year → 2nd Year<br>
+                                                📗 2nd Year → 3rd Year<br>
+                                                📘 3rd Year → 4th Year<br>
+                                                🎓 4th Year → Alumni (GRADUATED)
+                                            </div>
+
+                                            <!-- Warning -->
+                                            <p style="color:#999; font-size:12px; margin-bottom:20px;">
+                                                ⚠️ This action <strong>cannot be undone</strong>. Proceed with caution.
+                                            </p>
+
+                                            <!-- Buttons -->
+                                            <div style="display:flex; gap:10px; justify-content:center;">
+
+                                                <!-- Cancel -->
+                                                <button type="button"
+                                                        onclick="document.getElementById('rolloverModal').style.display='none'"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#ccc;
+                                                            color:#333;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✖ Cancel
+                                                </button>
+
+                                                <!-- Confirm -->
+                                                <button type="submit"
+                                                        form="rolloverForm"
+                                                        name="rollover_students"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#8f0419;
+                                                            color:white;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✔ Yes, Proceed
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </div>
+   
                                 </div>
                             </div>                             
                         </div>                 
@@ -515,8 +459,6 @@ if (isset($_SESSION['message'])) {
                 <?php include('pages/footer.php');?>
             </div>
         </div>
-
-        
         <?php include('pages/scripts.php');?>
     </body>
 </html>
