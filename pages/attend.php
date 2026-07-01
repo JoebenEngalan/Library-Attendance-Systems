@@ -88,7 +88,7 @@ if ($openRecord) {
         $stmtIns->bindParam(':time_in', $current_time, PDO::PARAM_STR);
         $stmtIns->execute();
 
-        $_SESSION['message'] = "⚠️ Previous session auto-closed.<br>✅ New Time IN recorded for <b>$fullname</b> at $current_time_12.";
+        $_SESSION['message'] = "⚠️ Previous session auto-closed.<br>✅ New Time IN recorded for <b>$fullname</b>,<b>$course</b> and <b>$yearlevel</b> at $current_time_12.";
 
     } else {
         // Time OUT for same day
@@ -108,7 +108,7 @@ if ($openRecord) {
         $stmtUp->bindParam(':aid', $openRecord->attendance_id, PDO::PARAM_INT);
         $stmtUp->execute();
 
-        $_SESSION['message'] = "✅ TIME OUT recorded for <b>$fullname</b> at $current_time_12.<br>🕒 Duration inside: $duration.";
+        $_SESSION['message'] = "✅ TIME OUT recorded for <b>$fullname</b>,<b>$course</b> and <b>$yearlevel</b> at $current_time_12.<br>🕒 Duration inside: $duration.";
     }
 
 } else {
@@ -124,7 +124,7 @@ if ($openRecord) {
     $stmtIns->bindParam(':time_in', $current_time, PDO::PARAM_STR);
     $stmtIns->execute();
 
-    $_SESSION['message'] = "✅ TIME IN recorded for <b>$fullname</b> at $current_time_12.";
+    $_SESSION['message'] = "✅ TIME IN recorded for <b>$fullname</b>,<b>$course</b> and <b>$yearlevel</b> at $current_time_12.";
 }
 
 // ✅ Redirect back to index.php (prevents form resubmission)
