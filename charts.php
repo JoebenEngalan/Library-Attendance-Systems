@@ -238,107 +238,182 @@ $currentYear  = date('Y');
                             </div>
                         </div>
 
-                    </div>
-                </main>
-                <?php include('pages/footer.php');?>
-            </div>
-        </div>
+                        <div class="card mb-4">
+                            <!-- HEADER -->
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="fw-semibold">
+                                        <i class="fas fa-chart-bar me-1"></i>
+                                        Peak Time-In Hours (<span id="peakHoursLabel"></span>)
+                                    </div>
+                        
+                                    <div class="d-flex align-items-center gap-2 flex-nowrap">
+                                        <!-- Month Filter -->
+                                        <select id="peakHoursMonth" class="form-select form-select-sm" style="min-width: 130px;">
+                                            <option value="all">All</option>
+                                            <?php
+                                            $currentMonth = date('n');
+                                            $monthNames = [
+                                                1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                                                5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                                                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+                                            ];
+                                            foreach ($monthNames as $num => $name) {
+                                                $selected = ($num == $currentMonth) ? 'selected' : '';
+                                                echo "<option value='$num' $selected>$name</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <!-- Year Filter -->
+                                        <select id="peakHoursYear" class="form-select form-select-sm" style="min-width: 90px;">
+                                            <?php
+                                            $currentYear = date('Y');
+                                            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                                                $selected = ($y == $currentYear) ? 'selected' : '';
+                                                echo "<option value='$y' $selected>$y</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-primary d-flex align-items-center gap-1 text-nowrap"
+                                            onclick="loadPeakHoursChart()"
+                                        >
+                                            <i class="fa-duotone fa-light fa-filter"></i>
+                                            <span class="d-none d-sm-inline">Filter</span>
+                                        </button>
+
+                                       <button
+                                            type="button"
+                                            class="btn btn-sm btn-success d-flex align-items-center gap-1 text-nowrap"
+                                            onclick="exportPeakHoursPNG()"
+                                        >
+                                            <i class="fa-duotone fa-solid fa-file-image"></i>
+                                            <span class="d-none d-sm-inline">Export PNG</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                            <!-- BODY -->
+                            <div class="card-body" style="height: 420px;">
+                                <canvas id="peakHoursChart"></canvas>
+                            </div>
+                        
+                            <!-- FOOTER -->
+                            <div class="card-footer small text-muted">
+                                <i class="fa-regular fa-clock me-1"></i>
+                                Updated: <?php echo date("F d, Y h:i A"); ?>
+                            </div>
+                        </div>
 
         <!-- Charts Function -->
+ 
         <script>
-            /* monthly_attendance.php */ 
-            Chart.defaults.font.family =
+        /* ============================================================
+        GLOBAL CHART SETTINGS
+        ============================================================ */
+        Chart.defaults.font.family =
             '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-            Chart.defaults.color = '#000000';
+        Chart.defaults.color = '#000000';
 
-            document.addEventListener("DOMContentLoaded", () => {
+        const peakHoursMonthNames = {
+            1: 'January', 2: 'February', 3: 'March', 4: 'April',
+            5: 'May', 6: 'June', 7: 'July', 8: 'August',
+            9: 'September', 10: 'October', 11: 'November', 12: 'December'
+        };
 
-                fetch(`pages/monthly_attendance.php?year_monthly=<?php echo (int)$monthlyYear; ?>`)
-                    .then(response => response.json())
-                    .then(result => {
+        let peakHoursChartInstance = null;
 
-                        const canvas = document.getElementById('myBarChart');
-                        if (!canvas || !result.labels) return;
+        /* ============================================================
+        1. MONTHLY ATTENDANCE CHART (bar)
+        ============================================================ */
+        document.addEventListener("DOMContentLoaded", () => {
 
-                        const ctx = canvas.getContext('2d');
+            fetch(`pages/monthly_attendance.php?year_monthly=<?php echo (int)$monthlyYear; ?>`)
+                .then(response => response.json())
+                .then(result => {
 
-                        /* Retina scaling */
-                        const dpr = window.devicePixelRatio || 1;
-                        const rect = canvas.getBoundingClientRect();
-                        canvas.width  = rect.width * dpr;
-                        canvas.height = rect.height * dpr;
-                        ctx.scale(dpr, dpr);
+                    const canvas = document.getElementById('myBarChart');
+                    if (!canvas || !result.labels) return;
 
-                        if (window.monthlyAttendanceChart instanceof Chart) {
-                            window.monthlyAttendanceChart.destroy();
-                        }
+                    const ctx = canvas.getContext('2d');
 
-                        window.monthlyAttendanceChart = new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: result.labels,
-                                datasets: [{
-                                    label: `Total Monthly Attendance (<?php echo (int)$monthlyYear; ?>)`,
-                                    data: result.data,
-                                    backgroundColor: '#0d6efd',
-                                    borderRadius: 6,
-                                    barThickness: 32
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    x: {
-                                        grid: { display: false },
-                                        ticks: {
-                                            color: '#000',
-                                            font: {
-                                                size: 13,
-                                                weight: 'bold'
-                                            },
-                                            padding: 12
-                                        }
-                                    },
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: { precision: 0 }
+                    /* Retina scaling */
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width  = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+
+                    if (window.monthlyAttendanceChart instanceof Chart) {
+                        window.monthlyAttendanceChart.destroy();
+                    }
+
+                    window.monthlyAttendanceChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: result.labels,
+                            datasets: [{
+                                label: `Total Monthly Attendance (<?php echo (int)$monthlyYear; ?>)`,
+                                data: result.data,
+                                backgroundColor: '#0d6efd',
+                                borderRadius: 6,
+                                barThickness: 32
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: {
+                                        color: '#000',
+                                        font: { size: 13, weight: 'bold' },
+                                        padding: 12
                                     }
                                 },
-                                plugins: {
-                                    legend: { display: false }
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { precision: 0 }
                                 }
                             },
-                            plugins: [{
-                                /* VALUES BELOW BARS */
-                                id: 'valueBelowBar',
-                                afterDatasetsDraw(chart) {
-                                    const { ctx } = chart;
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        },
+                        plugins: [{
+                            id: 'valueBelowBar',
+                            afterDatasetsDraw(chart) {
+                                const { ctx } = chart;
+                                chart.data.datasets.forEach((dataset, i) => {
+                                    chart.getDatasetMeta(i).data.forEach((bar, index) => {
+                                        const value = dataset.data[index];
+                                        if (value === 0) return;
 
-                                    chart.data.datasets.forEach((dataset, i) => {
-                                        chart.getDatasetMeta(i).data.forEach((bar, index) => {
-                                            const value = dataset.data[index];
-                                            if (value === 0) return;
-
-                                            ctx.save();
-                                            ctx.fillStyle = '#000000';
-                                            ctx.font = 'bold 12px Arial';
-                                            ctx.textAlign = 'center';
-                                            ctx.textBaseline = 'top';
-
-                                            /* Position just below bar */
-                                            ctx.fillText(value, bar.x, bar.base + 10);
-                                            ctx.restore();
-                                        });
+                                        ctx.save();
+                                        ctx.fillStyle = '#000000';
+                                        ctx.font = 'bold 12px Arial';
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'top';
+                                        ctx.fillText(value, bar.x, bar.base + 10);
+                                        ctx.restore();
                                     });
-                                }
-                            }]
-                        });
-                    })
-                    .catch(err => console.error("Monthly chart error:", err));
-            });
+                                });
+                            }
+                        }]
+                    });
+                })
+                .catch(err => console.error("Monthly chart error:", err));
+        });
 
-            document.addEventListener("DOMContentLoaded", function () {
+        /* ============================================================
+        2. COURSE ATTENDANCE — BAR + PIE CHART
+        ============================================================ */
+        document.addEventListener("DOMContentLoaded", function () {
 
             const month = <?php echo json_encode($month); ?>;
             const year  = <?php echo json_encode($year); ?>;
@@ -352,11 +427,10 @@ $currentYear  = date('Y');
 
                     if (!result.labels || result.labels.length === 0) return;
 
-                    /* ================= BAR CHART ================= */
+                    /* ---------- BAR CHART ---------- */
                     const barCanvas = document.getElementById("attendanceBarChart");
 
                     if (barCanvas) {
-
                         const ctxBar = barCanvas.getContext("2d");
 
                         if (window.barChart instanceof Chart) {
@@ -382,10 +456,7 @@ $currentYear  = date('Y');
                                         grid: { display: false },
                                         ticks: {
                                             color: '#000',
-                                            font: {
-                                                size: 13,
-                                                weight: 'bold'
-                                            },
+                                            font: { size: 13, weight: 'bold' },
                                             padding: 12
                                         }
                                     },
@@ -401,12 +472,9 @@ $currentYear  = date('Y');
                             plugins: [{
                                 id: 'valueBelowBar',
                                 afterDatasetsDraw(chart) {
-
                                     const { ctx } = chart;
-
                                     chart.data.datasets.forEach((dataset, i) => {
                                         chart.getDatasetMeta(i).data.forEach((bar, index) => {
-
                                             const value = dataset.data[index];
                                             if (!value) return;
 
@@ -424,11 +492,10 @@ $currentYear  = date('Y');
                         });
                     }
 
-                    /* ================= PIE CHART ================= */
+                    /* ---------- PIE CHART ---------- */
                     const pieCanvas = document.getElementById("attendancePieChart");
 
                     if (pieCanvas) {
-
                         const ctxPie = pieCanvas.getContext("2d");
 
                         if (window.pieChart instanceof Chart) {
@@ -444,59 +511,42 @@ $currentYear  = date('Y');
                                     data: result.data,
                                     backgroundColor: result.colors,
                                     borderWidth: 1,
-                                    offset: result.data.map(() => 0) // needed for explode
+                                    offset: result.data.map(() => 0)
                                 }]
                             },
-
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
-
                                 plugins: {
-                                    legend: {
-                                        position: "right"
-                                    },
-
+                                    legend: { position: "right" },
                                     tooltip: {
                                         callbacks: {
-                                            label: function(context) {
-
-                                                let total = context.dataset.data.reduce((a,b)=>a+b,0);
+                                            label: function (context) {
+                                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
                                                 let value = context.raw;
                                                 let percent = ((value / total) * 100).toFixed(1);
-
                                                 return `${context.label}: ${value} (${percent}%)`;
                                             }
                                         }
                                     }
                                 },
-
-                                /* CLICK TO EXPLODE SLICE */
-                                onClick: function(evt, elements) {
-
+                                onClick: function (evt, elements) {
                                     if (elements.length > 0) {
-
                                         const index = elements[0].index;
                                         const dataset = this.data.datasets[0];
-
-                                        dataset.offset[index] =
-                                            dataset.offset[index] === 30 ? 0 : 30;
-
+                                        dataset.offset[index] = dataset.offset[index] === 30 ? 0 : 30;
                                         this.update();
                                     }
                                 }
                             },
-
                             plugins: [{
                                 id: 'pieValues',
                                 afterDatasetsDraw(chart) {
-
                                     const { ctx } = chart;
                                     const dataset = chart.data.datasets[0];
                                     const meta = chart.getDatasetMeta(0);
 
                                     meta.data.forEach((slice, i) => {
-
                                         const value = dataset.data[i];
                                         if (!value) return;
 
@@ -504,7 +554,7 @@ $currentYear  = date('Y');
 
                                         ctx.save();
                                         ctx.fillStyle = "#ffffff";
-                                        ctx.font = "bold 16px Arial"; // bigger number
+                                        ctx.font = "bold 16px Arial";
                                         ctx.textAlign = "center";
                                         ctx.textBaseline = "middle";
                                         ctx.fillText(value, pos.x, pos.y);
@@ -516,85 +566,245 @@ $currentYear  = date('Y');
                     }
                 })
                 .catch(err => console.error("Chart error:", err));
+        });
+
+        /* ============================================================
+        3. PEAK TIME-IN HOURS CHART
+        ============================================================ */
+        function loadPeakHoursChart() {
+            const month = document.getElementById('peakHoursMonth').value;
+            const year = document.getElementById('peakHoursYear').value;
+
+            const label = (month === 'all')
+                ? `All Months ${year}`
+                : `${peakHoursMonthNames[month]} ${year}`;
+            document.getElementById('peakHoursLabel').textContent = label;
+
+            fetch(`pages/peak_hours.php?month=${month}&year=${year}`)
+                .then(response => response.json())
+                .then(result => {
+                    const ctx = document.getElementById('peakHoursChart').getContext('2d');
+
+                    if (peakHoursChartInstance) {
+                        peakHoursChartInstance.destroy();
+                    }
+
+                    peakHoursChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: result.labels,
+                            datasets: [{
+                                label: 'Check-ins',
+                                data: result.data,
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: { bottom: 20 }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Number of Check-ins' }
+                                },
+                                x: {
+                                    title: { display: true, text: 'Time of Day' },
+                                    ticks: { padding: 20 }
+                                }
+                            }
+                        },
+                        plugins: [{
+                            id: 'valueBelowBar',
+                            afterDatasetsDraw(chart) {
+                                const { ctx } = chart;
+                                chart.data.datasets.forEach((dataset, i) => {
+                                    chart.getDatasetMeta(i).data.forEach((bar, index) => {
+                                        const value = dataset.data[index];
+                                        if (value === 0) return;
+
+                                        ctx.save();
+                                        ctx.fillStyle = '#000000';
+                                        ctx.font = 'bold 12px Arial';
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'top';
+                                        ctx.fillText(value, bar.x, bar.base + 10);
+                                        ctx.restore();
+                                    });
+                                });
+                            }
+                        }]
+                    });
+                })
+                .catch(err => console.error('Failed to load peak hours chart:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPeakHoursChart);
+
+        /* ============================================================
+        4. HIGH-RES PNG EXPORT (shared by all charts)
+        ============================================================ */
+        function exportHighResChartPNG({
+            canvasId,
+            title = "Attendance by Course",
+            subtitle = "MonCast Learning Resource Center",
+            logoPath = "assets/img/Logo-chrome-192x192.png",
+            scale = 4
+        }) {
+
+            const sourceCanvas = document.getElementById(canvasId);
+
+            if (!sourceCanvas) {
+                alert("Canvas not found: " + canvasId);
+                return;
+            }
+
+            const chartInstance = Chart.getChart(sourceCanvas);
+
+            if (!chartInstance) {
+                alert("Chart instance not found for: " + canvasId);
+                return;
+            }
+
+            const originalDPR = chartInstance.options.devicePixelRatio;
+
+            chartInstance.options.devicePixelRatio = scale;
+            chartInstance.resize();
+            chartInstance.update('none');
+
+            const headerHeight = 130 * scale;
+            const chartWidth = sourceCanvas.width;
+            const chartHeight = sourceCanvas.height;
+
+            const exportCanvas = document.createElement("canvas");
+            const ctx = exportCanvas.getContext("2d");
+
+            exportCanvas.width = chartWidth;
+            exportCanvas.height = chartHeight + headerHeight;
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+            const logo = new Image();
+            logo.crossOrigin = "anonymous";
+
+            logo.onload = function () {
+
+                const logoSize = 80 * scale;
+
+                ctx.drawImage(logo, 20 * scale, 20 * scale, logoSize, logoSize);
+
+                ctx.fillStyle = "#000";
+                ctx.font = `bold ${26 * scale}px Arial`;
+                ctx.fillText(title, 120 * scale, 55 * scale);
+
+                ctx.font = `${18 * scale}px Arial`;
+                ctx.fillText(subtitle, 120 * scale, 85 * scale);
+
+                ctx.drawImage(sourceCanvas, 0, headerHeight, chartWidth, chartHeight);
+
+                exportCanvas.toBlob(function (blob) {
+
+                    const link = document.createElement("a");
+                    link.download = canvasId + "_MonCAST.png";
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+
+                    chartInstance.options.devicePixelRatio = originalDPR;
+                    chartInstance.resize();
+                    chartInstance.update('none');
+
+                }, "image/png", 1.0);
+
+            };
+
+            logo.onerror = function () {
+                alert("Logo failed to load. Check logo path.");
+
+                chartInstance.options.devicePixelRatio = originalDPR;
+                chartInstance.resize();
+                chartInstance.update('none');
+            };
+
+            logo.src = logoPath;
+        }
+
+        /* ============================================================
+        5. EXPORT WRAPPERS — each builds a dynamic, filter-aware title
+        ============================================================ */
+
+        /* Monthly Attendance export */
+        function exportMonthlyAttendancePNG() {
+            const year = document.getElementById('year_monthly').value;
+
+            exportHighResChartPNG({
+                canvasId: 'myBarChart',
+                title: `Total Monthly Attendance (${year})`,
+                subtitle: 'MonCast Learning Resource Center',
+                logoPath: 'assets/img/Logo-chrome-192x192.png',
+                scale: 4
             });
+        }
 
+        /* Course Attendance (Bar) export */
+        function exportCourseBarPNG() {
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            const label = `${peakHoursMonthNames[month]} ${year}`;
 
-            /* Export High-Res PNG Function */
-            function exportHighResChartPNG({
-                canvasId,
-                title = "Attendance by Course",
-                subtitle = "MonCast Learning Resource Center",
-                logoPath = "assets/img/Logo-chrome-192x192.png",
-                scale = 6 // ⭐ 4–6 gives very sharp PNG
-            }) {
+            exportHighResChartPNG({
+                canvasId: 'attendanceBarChart',
+                title: `Attendance by Course (${label})`,
+                subtitle: 'MonCast Learning Resource Center',
+                logoPath: 'assets/img/Logo-chrome-192x192.png',
+                scale: 4
+            });
+        }
 
-                const sourceCanvas = document.getElementById(canvasId);
+        /* Course Attendance (Pie) export */
+        function exportCoursePiePNG() {
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            const label = `${peakHoursMonthNames[month]} ${year}`;
 
-                if (!sourceCanvas) {
-                    alert("Canvas not found: " + canvasId);
-                    return;
-                }
+            exportHighResChartPNG({
+                canvasId: 'attendancePieChart',
+                title: `Attendance by Course (${label})`,
+                subtitle: 'MonCast Learning Resource Center',
+                logoPath: 'assets/img/Logo-chrome-192x192.png',
+                scale: 4
+            });
+        }
 
-                const headerHeight = 130;
+        /* Peak Time-In Hours export */
+        function exportPeakHoursPNG() {
+            const month = document.getElementById('peakHoursMonth').value;
+            const year = document.getElementById('peakHoursYear').value;
 
-                const exportCanvas = document.createElement("canvas");
-                const ctx = exportCanvas.getContext("2d");
+            const periodLabel = (month === 'all')
+                ? `All Months ${year}`
+                : `${peakHoursMonthNames[month]} ${year}`;
 
-                const width = sourceCanvas.width;
-                const height = sourceCanvas.height;
-
-                /* Increase resolution */
-                exportCanvas.width = width * scale;
-                exportCanvas.height = (height + headerHeight) * scale;
-
-                ctx.scale(scale, scale);
-
-                /* Prevent blur */
-                ctx.imageSmoothingEnabled = true;
-
-                /* White background */
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, width, height + headerHeight);
-
-                const logo = new Image();
-                logo.crossOrigin = "anonymous";
-
-                logo.onload = function () {
-
-                    /* Logo */
-                    ctx.drawImage(logo, 20, 20, 80, 80);
-
-                    /* Title */
-                    ctx.fillStyle = "#000";
-                    ctx.font = "bold 26px Arial";
-                    ctx.fillText(title, 120, 55);
-
-                    /* Subtitle */
-                    ctx.font = "18px Arial";
-                    ctx.fillText(subtitle, 120, 85);
-
-                    /* Chart */
-                    ctx.drawImage(sourceCanvas, 0, headerHeight, width, height);
-
-                    /* Export using Blob (better quality) */
-                    exportCanvas.toBlob(function(blob) {
-
-                        const link = document.createElement("a");
-                        link.download = canvasId + "_MonCAST.png";
-                        link.href = URL.createObjectURL(blob);
-                        link.click();
-
-                    }, "image/png", 1.0);
-
-                };
-
-                logo.onerror = function () {
-                    alert("Logo failed to load. Check logo path.");
-                };
-
-                logo.src = logoPath;
-            }       
+            exportHighResChartPNG({
+                canvasId: 'peakHoursChart',
+                title: `Peak Time-In Hours (${periodLabel})`,
+                subtitle: 'MonCast Learning Resource Center',
+                logoPath: 'assets/img/Logo-chrome-192x192.png',
+                scale: 4
+            });
+        }
         </script>
+        
         <?php include('pages/scripts.php');?>
     </body>
 </html>
