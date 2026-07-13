@@ -30,12 +30,12 @@ $user = $stmt->fetch(PDO::FETCH_OBJ);
 if (!$user || !password_verify($password, $user->password)) {
 
     $dbh->prepare("
-        INSERT INTO user_activity (username, activity_type, activity_description)
-        VALUES (?, 'LOGIN_FAILED', 'Invalid login attempt')
-    ")->execute([$username]);
+        INSERT INTO user_activity (user_id, username, activity_type, activity_description)
+        VALUES (?, ?, 'LOGIN_FAILED', 'Invalid login attempt')
+    ")->execute([$user->user_id ?? null, $username]);
 
     $_SESSION['error'] = "Invalid username or password.";
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit;
 }
 
@@ -77,4 +77,3 @@ header("Location: ../admin.php");
 exit;
 
 ?>
-
