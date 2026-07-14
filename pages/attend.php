@@ -71,7 +71,8 @@ $openRecord = $queryOpen->fetch(PDO::FETCH_OBJ);
 if ($openRecord) {
     if ($openRecord->date_in != $today) {
         // Auto-close previous day's record
-        $autoClose = "UPDATE attendance SET time_out = '23:59:59' WHERE attendance_id = :aid";
+        $autoClose = "
+        ";
         $stmtClose = $dbh->prepare($autoClose);
         $stmtClose->bindParam(':aid', $openRecord->attendance_id, PDO::PARAM_INT);
         $stmtClose->execute();
