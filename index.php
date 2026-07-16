@@ -44,7 +44,7 @@ unset($_SESSION['message']);
                     <div class="text-center text-white">
                         
                         <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
-                            <span style="color:#d63384;">1st Year students and First Time Library Users Go to the Library Administrator</span>
+                            <span style="color:#d63384;">1st Year students and First Time Library Users of the System Go to the Library Administrator</span>
                         </div> 
 
                         <?php if ($message): ?>
@@ -181,7 +181,7 @@ unset($_SESSION['message']);
         </div>
     </div>
     <!-- Footer -->                       
-    <footer class="py-4 bg-light mt-auto">
+    <footer class="py-4 bg-light mt-auto" style="min-height: 70px;">
         <div class="container-fluid px-4">
             <div class="d-flex align-items-center justify-content-between small flex-wrap">
 

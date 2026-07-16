@@ -8,8 +8,8 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// 🔧 10 minutes (testing)
-$timeoutSeconds = 10 * 60;
+// 🔧 2 hours
+$timeoutSeconds = 2 * 60 * 60;
 
 // Fetch session state
 $stmt = $dbh->prepare("
