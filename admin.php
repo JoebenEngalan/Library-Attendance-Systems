@@ -391,6 +391,128 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                         </div>
 
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <i class="fa-duotone fa-solid fa-trophy me-1"></i>
+                                        Top 3 Students by Course (<span id="topStudentsLabel"></span>)
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-2 flex-nowrap">
+                                        <!-- Month Filter -->
+                                        <select id="topStudentsMonth" class="form-select form-select-sm" style="min-width: 130px;">
+                                            <option value="all">All Months</option>
+                                            <?php
+                                            $currentMonth = date('n');
+                                            $monthNames = [
+                                                1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                                                5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                                                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+                                            ];
+                                            foreach ($monthNames as $num => $name) {
+                                                $selected = ($num == $currentMonth) ? 'selected' : '';
+                                                echo "<option value='$num' $selected>$name</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <!-- Year Filter -->
+                                        <select id="topStudentsYear" class="form-select form-select-sm" style="min-width: 90px;">
+                                            <?php
+                                            $currentYear = date('Y');
+                                            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                                                $selected = ($y == $currentYear) ? 'selected' : '';
+                                                echo "<option value='$y' $selected>$y</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-primary d-flex align-items-center gap-1 text-nowrap"
+                                            onclick="loadTopStudentsTable()"
+                                        >
+                                            <i class="fa-duotone fa-light fa-filter"></i>
+                                            <span class="d-none d-sm-inline">Filter</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="topStudentsTable" name="topStudentsTable" class="table table-striped table-hover align-middle w-100">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Course</th>
+                                                <th>Rank</th>
+                                                <th class="text-end">ID Number</th>
+                                                <th class="text-center">Full Name</th>
+                                                <th>Year Level</th>
+                                                <th>Total Visits</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Populated by DataTables via AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card-footer small text-muted">
+                                <i class="fa-regular fa-clock me-1"></i>
+                                Updated: <?php echo date("F d, Y h:i A"); ?>
+                            </div>
+                        </div>
+
+                        <script>
+                        const topStudentsMonthNames = {
+                            1: 'January', 2: 'February', 3: 'March', 4: 'April',
+                            5: 'May', 6: 'June', 7: 'July', 8: 'August',
+                            9: 'September', 10: 'October', 11: 'November', 12: 'December'
+                        };
+
+                        let topStudentsDataTable = null;
+
+                        function loadTopStudentsTable() {
+                            const month = document.getElementById('topStudentsMonth').value;
+                            const year = document.getElementById('topStudentsYear').value;
+
+                            const label = (month === 'all')
+                                ? `All Months ${year}`
+                                : `${topStudentsMonthNames[month]} ${year}`;
+                            document.getElementById('topStudentsLabel').textContent = label;
+
+                            if (topStudentsDataTable) {
+                                topStudentsDataTable.ajax.url(
+                                    `pages/top_students_by_course.php?month=${month}&year=${year}`
+                                ).load();
+                                return;
+                            }
+
+                            topStudentsDataTable = $('#topStudentsTable').DataTable({
+                                ajax: {
+                                    url: `pages/top_students_by_course.php?month=${month}&year=${year}`,
+                                    dataSrc: 'data'
+                                },
+                                columns: [
+                                    { data: 'course' },
+                                    { data: 'rank_in_course' },
+                                    { data: 'id_number', className: 'text-end' },
+                                    { data: 'fullname', className: 'text-center' },
+                                    { data: 'yearlevel' },
+                                    { data: 'total_visits' }
+                                ],
+                                order: [[0, 'asc'], [1, 'asc']],
+                                pageLength: 25,
+                                lengthChange: false
+                            });
+                        }
+
+                        document.addEventListener('DOMContentLoaded', loadTopStudentsTable);
+                        </script>
+
                     </div>
                 </main>
                 <?php include('pages/footer.php');?>

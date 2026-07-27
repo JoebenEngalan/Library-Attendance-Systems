@@ -43,9 +43,6 @@ unset($_SESSION['message']);
 
                     <div class="text-center text-white">
                         
-                        <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
-                            <span style="color:#d63384;">1st Year students and First Time Library Users of the System Go to the Library Administrator</span>
-                        </div> 
 
                         <?php if ($message): ?>
                             <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
@@ -60,6 +57,7 @@ unset($_SESSION['message']);
                             <div class="row g-2 justify-content-center">
 
                                 <!-- ID Input -->
+                                <!-- ID Input -->
                                 <div class="col-12 col-sm-8">
                                     <input
                                         type="text"
@@ -68,9 +66,10 @@ unset($_SESSION['message']);
                                         class="form-control form-control-lg text-left"
                                         placeholder="Enter or Scan Student ID"
                                         autocomplete="off"
-                                        onkeydown="return /[a-zA-Z0-9]+/i.test(event.key)"
+                                        onkeydown="return validateIdInput(event)"
                                         required
                                         autofocus>
+                                    
                                 </div>
 
                                 <!-- Submit Button -->
@@ -83,7 +82,9 @@ unset($_SESSION['message']);
                                         Enter
                                     </button>
                                 </div>
-
+                                <div id="id_number_error" class="alert alert-light mt-4 fw-bold fs-3 d-none" role="alert">
+                                    No special characters or spaces allowed. Letters and numbers only.
+                                </div>
                             </div>
                         </form>
                         
@@ -230,6 +231,29 @@ unset($_SESSION['message']);
             if (input) { input.value = ''; input.focus(); }
         });
     // optional: enter key submits naturally since it's a form
+    </script>
+
+    <script>
+    function validateIdInput(event) {
+        const errorMsg = document.getElementById('id_number_error');
+        const isValid = /^[a-zA-Z0-9]$/.test(event.key);
+
+        // Allow control keys (Backspace, Delete, Tab, Arrow keys, etc.)
+        const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'];
+
+        if (allowedKeys.includes(event.key)) {
+            errorMsg.classList.add('d-none');
+            return true;
+        }
+
+        if (!isValid) {
+            errorMsg.classList.remove('d-none');
+            return false;
+        }
+
+        errorMsg.classList.add('d-none');
+        return true;
+    }
     </script>
 
     <script src="assets/bootstrap.min.js"></script>
