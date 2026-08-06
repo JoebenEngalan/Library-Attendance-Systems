@@ -513,6 +513,132 @@ if (!isset($_SESSION['user_id'])) {
                         document.addEventListener('DOMContentLoaded', loadTopStudentsTable);
                         </script>
 
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <i class="fa-duotone fa-solid fa-users me-1"></i>
+                                        Student Attendance Count (<span id="studentCountLabel"></span>)
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-2 flex-nowrap overflow-auto pb-1">
+                                        <!-- From Month / Year -->
+                                        <select id="studentCountStartMonth" class="form-select form-select-sm" style="min-width: 120px;">
+                                            <?php
+                                            foreach ($monthNames as $num => $name) {
+                                                $selected = ($num == 1) ? 'selected' : '';
+                                                echo "<option value='$num' $selected>$name</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <select id="studentCountStartYear" class="form-select form-select-sm" style="min-width: 90px;">
+                                            <?php
+                                            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                                                $selected = ($y == $currentYear) ? 'selected' : '';
+                                                echo "<option value='$y' $selected>$y</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <span>to</span>
+
+                                        <!-- To Month / Year -->
+                                        <select id="studentCountEndMonth" class="form-select form-select-sm" style="min-width: 120px;">
+                                            <?php
+                                            foreach ($monthNames as $num => $name) {
+                                                $selected = ($num == $currentMonth) ? 'selected' : '';
+                                                echo "<option value='$num' $selected>$name</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <select id="studentCountEndYear" class="form-select form-select-sm" style="min-width: 90px;">
+                                            <?php
+                                            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                                                $selected = ($y == $currentYear) ? 'selected' : '';
+                                                echo "<option value='$y' $selected>$y</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-primary d-flex align-items-center gap-1 text-nowrap"
+                                            onclick="loadStudentCountTable()"
+                                        >
+                                            <i class="fa-duotone fa-light fa-filter"></i>
+                                            <span class="d-none d-sm-inline">Filter</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="studentCountTable" name="studentCountTable" class="table table-striped table-hover align-middle w-100">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-end">ID Number</th>
+                                                <th class="text-center">Full Name</th>
+                                                <th>Course</th>
+                                                <th>Year Level</th>
+                                                <th>Total Visits</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Populated by DataTables via AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card-footer small text-muted">
+                                <i class="fa-regular fa-clock me-1"></i>
+                                Excludes students who did not time out
+                            </div>
+                        </div>
+
+                        <script>
+                        let studentCountDataTable = null;
+
+                        function loadStudentCountTable() {
+                            const startMonth = document.getElementById('studentCountStartMonth').value;
+                            const endMonth = document.getElementById('studentCountEndMonth').value;
+                            const startYear = document.getElementById('studentCountStartYear').value;
+                            const endYear = document.getElementById('studentCountEndYear').value;
+
+                            const url = `pages/student_attendance_count.php?start_month=${startMonth}&end_month=${endMonth}&start_year=${startYear}&end_year=${endYear}`;
+                            const label = `${topStudentsMonthNames[startMonth]} ${startYear} - ${topStudentsMonthNames[endMonth]} ${endYear}`;
+
+                            document.getElementById('studentCountLabel').textContent = label;
+
+                            if (studentCountDataTable) {
+                                studentCountDataTable.ajax.url(url).load();
+                                return;
+                            }
+
+                            studentCountDataTable = $('#studentCountTable').DataTable({
+                                ajax: {
+                                    url: url,
+                                    dataSrc: 'data'
+                                },
+                                columns: [
+                                    { data: 'id_number', className: 'text-end' },
+                                    { data: 'fullname', className: 'text-center' },
+                                    { data: 'course' },
+                                    { data: 'yearlevel' },
+                                    { data: 'total_visits' }
+                                ],
+                                order: [[4, 'desc']],
+                                pageLength: 25,
+                                lengthChange: false
+                            });
+                        }
+
+                        document.addEventListener('DOMContentLoaded', loadStudentCountTable);
+                        </script>
+
                     </div>
                 </main>
                 <?php include('pages/footer.php');?>
