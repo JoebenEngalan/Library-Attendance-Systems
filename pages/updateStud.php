@@ -92,6 +92,3 @@ if (isset($_POST['updateStudent'])) {
     exit();
 }
 ?>
-
-
-
