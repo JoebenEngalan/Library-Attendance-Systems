@@ -42,8 +42,8 @@ if (!$student) {
 if ($student->status !== "ACTIVE") {
 
     $statusMessage = [
-        "SUSPENDED" => "⛔ Your account is SUSPENDED. Contact the Library administrator.",
-        "INACTIVE" => "⚠️ Your account is INACTIVE. Contact the Library administrator.",
+        "SUSPENDED" => "⛔ Your account is Temporarily SUSPENDED. Please Contact the Library Administrator.",
+        "INACTIVE" => "⚠️ Your account is INACTIVE. Please Contact the Library Administrator.",
         "GRADUATED" => "🎓 You are already GRADUATED."
     ];
 
