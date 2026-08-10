@@ -62,6 +62,18 @@ if (isset($_POST['rollover_students'])) {
 
         /*
         |--------------------------------------------------------------------------
+        | Backup studtbl BEFORE making any rollover changes
+        | Table name is stamped with the rollover date/time so it can be
+        | identified later (and used by the Reset button below).
+        |--------------------------------------------------------------------------
+        */
+        $backupTable = "studtbl_backup_" . date("Ymd_His");
+
+        $dbh->exec("CREATE TABLE `{$backupTable}` LIKE studtbl");
+        $dbh->exec("INSERT INTO `{$backupTable}` SELECT * FROM studtbl");
+
+        /*
+        |--------------------------------------------------------------------------
         | 4th Year → Alumni
         |--------------------------------------------------------------------------
         */
@@ -146,7 +158,9 @@ if (isset($_POST['rollover_students'])) {
             🎓 Graduated to Alumni: {$graduates}<br>
             📘 3rd → 4th Year: {$third}<br>
             📗 2nd → 3rd Year: {$second}<br>
-            📙 1st → 2nd Year: {$first}
+            📙 1st → 2nd Year: {$first}<br><br>
+
+            💾 Backup created: <code>{$backupTable}</code>
         </div>";
 
     } catch (Exception $e) {
@@ -162,6 +176,84 @@ if (isset($_POST['rollover_students'])) {
             margin-bottom:10px;'>
 
             ❌ Error during rollover process.
+        </div>";
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| RESET ROLLOVER
+| Restores studtbl from the most recent studtbl_backup_* table
+| (i.e. undoes the last rollover run).
+|--------------------------------------------------------------------------
+*/
+if (isset($_POST['reset_rollover'])) {
+
+    try {
+
+        // Find the most recent rollover backup table
+        $findBackup = $dbh->prepare("
+            SELECT TABLE_NAME
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME LIKE 'studtbl_backup_%'
+            ORDER BY TABLE_NAME DESC
+            LIMIT 1
+        ");
+        $findBackup->execute();
+        $latestBackup = $findBackup->fetchColumn();
+
+        if (!$latestBackup) {
+
+            $_SESSION['message'] = "
+            <div style='
+                padding:10px;
+                background:#f8d7da;
+                color:#721c24;
+                border-radius:5px;
+                margin-bottom:10px;'>
+                ❌ No rollover backup found to restore from.
+            </div>";
+
+        } else {
+
+            $dbh->beginTransaction();
+
+            // Replace studtbl contents with the backup's contents
+            $dbh->exec("TRUNCATE TABLE studtbl");
+            $dbh->exec("INSERT INTO studtbl SELECT * FROM `{$latestBackup}`");
+
+            $dbh->commit();
+
+            $_SESSION['message'] = "
+            <div style='
+                padding:10px;
+                background:#d4edda;
+                color:#155724;
+                border-radius:5px;
+                margin-bottom:10px;'>
+                ↩️ Rollover reset successfully. Restored from <code>{$latestBackup}</code>.
+            </div>";
+        }
+
+    } catch (Exception $e) {
+
+        if ($dbh->inTransaction()) {
+            $dbh->rollBack();
+        }
+
+        $_SESSION['message'] = "
+        <div style='
+            padding:10px;
+            background:#f8d7da;
+            color:#721c24;
+            border-radius:5px;
+            margin-bottom:10px;'>
+            ❌ Error while resetting rollover.
         </div>";
     }
 
@@ -346,7 +438,7 @@ if (isset($_SESSION['message'])) {
                         <div class="card mb-4"> 
                             <div class="card-header">
                                 <i class="fa-solid fa-graduation-cap"></i>
-                                Stutend Rollover (Promote Students to Next Year Level or Graduate to Alumni)
+                                Student Rollover (Promote Students to Next Year Level or Graduate to Alumni)
                             </div>
                             <div class="card-body">
 
@@ -360,6 +452,91 @@ if (isset($_SESSION['message'])) {
                                             Run Student Yearly Rollover
                                         </button>
                                     </form>
+
+                                    <!-- Reset Rollover Button -->
+                                    <form method="POST" id="resetRolloverForm">
+                                        <button type="button"
+                                                onclick="document.getElementById('resetRolloverModal').style.display='flex'"
+                                                style="padding:10px 20px;background:#8f0419;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            Reset Rollover
+                                        </button>
+                                    </form>
+
+                                    <!-- Reset Rollover Modal Overlay -->
+                                    <div id="resetRolloverModal" style="
+                                        display:none;
+                                        position:fixed;
+                                        top:0; left:0;
+                                        width:100%; height:100%;
+                                        background:rgba(0,0,0,0.5);
+                                        z-index:9999;
+                                        justify-content:center;
+                                        align-items:center;">
+
+                                        <!-- Modal Box -->
+                                        <div style="
+                                            background:white;
+                                            border-radius:10px;
+                                            padding:30px;
+                                            max-width:420px;
+                                            width:90%;
+                                            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+                                            text-align:center;">
+
+                                            <!-- Icon -->
+                                            <div style="font-size:48px; margin-bottom:10px;">↩️</div>
+
+                                            <!-- Title -->
+                                            <h3 style="margin:0 0 10px; color:#8f0419;">Reset Last Rollover</h3>
+
+                                            <!-- Description -->
+                                            <p style="color:#555; font-size:14px; margin-bottom:15px;">
+                                                This will <strong>restore studtbl</strong> from the most recent
+                                                rollover backup, undoing the last "Run Student Yearly Rollover"
+                                                action (year levels, course, and status will revert).
+                                            </p>
+
+                                            <!-- Warning -->
+                                            <p style="color:#999; font-size:12px; margin-bottom:20px;">
+                                                ⚠️ Any student edits made <strong>after</strong> the last rollover
+                                                will be lost. Only the most recent backup can be restored.
+                                            </p>
+
+                                            <!-- Buttons -->
+                                            <div style="display:flex; gap:10px; justify-content:center;">
+
+                                                <!-- Cancel -->
+                                                <button type="button"
+                                                        onclick="document.getElementById('resetRolloverModal').style.display='none'"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#ccc;
+                                                            color:#333;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✖ Cancel
+                                                </button>
+
+                                                <!-- Confirm -->
+                                                <button type="submit"
+                                                        form="resetRolloverForm"
+                                                        name="reset_rollover"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#8f0419;
+                                                            color:white;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✔ Yes, Reset
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <!-- Modal Overlay -->
                                     <div id="rolloverModal" style="
