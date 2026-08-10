@@ -3,8 +3,6 @@ session_start();
 error_reporting(0);
 include "includes/config.php";
 
-
-
 /* ✅ Timezone */
 date_default_timezone_set('Asia/Manila');
 
@@ -17,8 +15,11 @@ $current_time_12 = date("h:i A");
 if (isset($_POST['Add'])) {
 
     $studid = $_POST['studid'];
-    $lname = $_POST['inputLName'];
-    $fname = $_POST['inputFName'];
+
+    // Proper-case Lname/Fname: 'JOSE' -> 'Jose', 'DELA CRUZ' -> 'Dela Cruz'
+    $lname = ucwords(strtolower(trim($_POST['inputLName'])));
+    $fname = ucwords(strtolower(trim($_POST['inputFName'])));
+
     $courses = $_POST['course'];
     $yearlevel = $_POST['yearlevel'];
 

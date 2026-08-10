@@ -8,8 +8,11 @@ if (isset($_POST['updateStudent'])) {
     // REQUIRED FIELDS
     $id        = (int) $_POST['id'];
     $studid    = trim($_POST['edstudid']);
-    $lname     = trim($_POST['LName']);
-    $fname     = trim($_POST['FName']);
+
+    // Proper-case Lname/Fname: 'JOSE' -> 'Jose', 'DELA CRUZ' -> 'Dela Cruz'
+    $lname     = ucwords(strtolower(trim($_POST['LName'])));
+    $fname     = ucwords(strtolower(trim($_POST['FName'])));
+
     $course    = $_POST['editcourse'];
     $yearlevel = $_POST['edityearlevel'];
 
