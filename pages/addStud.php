@@ -103,42 +103,84 @@ if (isset($_POST['Add'])) {
 <!-- Add Student Modal -->
 <div class="modal fade" id="Addstudent" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="Addmodal" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="Addmodal">Add Sudent Profile</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+
+            <!-- Gradient Header -->
+            <div class="modal-header border-0 text-white"
+                 style="background: linear-gradient(135deg, #22b573 0%, #16a085 100%); padding: 1.5rem 1.75rem;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center"
+                         style="width:48px; height:48px; background:rgba(255,255,255,0.2); border-radius:50%;">
+                        <i class="fa-duotone fa-solid fa-user-plus fs-4"></i>
+                    </div>
+                    <div>
+                        <h1 class="modal-title fs-5 mb-0" id="Addmodal">Add Student Profile</h1>
+                        <div class="small opacity-75">Register a new student to the system</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="card-body">
-                    <!-- Start of Form -->
-                    <form class="forms-sample" method="post">
-                        <!-- Student ID -->
-                        <div class="form-floating mb-3">
-                            <input class="form-control" name="studid" id="studid" type="text" 
-                            autocomplete="off" placeholder="Student ID" required 
-                            onkeydown="return /[a-zA-Z0-9]+/i.test(event.key) || ['Delete','ArrowLeft','ArrowRight'].includes(event.key)"/>
-                            <label for="studid">Student ID</label>
+
+            <div class="modal-body p-4" style="background:#f9fafc;">
+                <!-- Start of Form -->
+                <form class="forms-sample" method="post">
+
+                    <!-- Section: Identity -->
+                    <div class="bg-white rounded-3 p-3 mb-3 shadow-sm">
+                        <div class="text-uppercase text-muted small fw-semibold mb-3 d-flex align-items-center gap-2">
+                            <i class="fa-duotone fa-solid fa-id-card"></i> Identity
                         </div>
-                        
+
+                        <!-- Student ID -->
+                        <div class="input-group input-group-lg mb-3">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fa-duotone fa-solid fa-hashtag text-muted"></i>
+                            </span>
+                            <div class="form-floating">
+                                <input class="form-control border-start-0" name="studid" id="studid" type="text" 
+                                autocomplete="off" placeholder="Student ID" required 
+                                onkeydown="return /[a-zA-Z0-9]+/i.test(event.key) || ['Delete','ArrowLeft','ArrowRight'].includes(event.key)"/>
+                                <label for="studid">Student ID</label>
+                            </div>
+                        </div>
+
                         <!-- Last Name -->
-                        <div class="form-floating mb-3">
-                            <input class="form-control" name="inputLName" id="inputLName" type="text" 
-                            autocomplete="off" placeholder="Enter your last name" required 
-                            onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight', '-'].includes(event.key)"/>
-                            <label for="inputLName">Last Name</label>
+                        <div class="input-group input-group-lg mb-3">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fa-duotone fa-solid fa-signature text-muted"></i>
+                            </span>
+                            <div class="form-floating">
+                                <input class="form-control border-start-0" name="inputLName" id="inputLName" type="text" 
+                                autocomplete="off" placeholder="Enter your last name" required 
+                                onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight', '-'].includes(event.key)"/>
+                                <label for="inputLName">Last Name</label>
+                            </div>
                         </div>
 
                         <!-- First Name -->
-                        <div class="form-floating mb-3">
-                            <input class="form-control" name="inputFName" id="inputFName" type="text" 
-                                    autocomplete="off" placeholder="Enter your first name" required 
-                                    onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight', '-'].includes(event.key)"/>
-                            <label for="inputFName">First Name</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fa-duotone fa-solid fa-signature text-muted"></i>
+                            </span>
+                            <div class="form-floating">
+                                <input class="form-control border-start-0" name="inputFName" id="inputFName" type="text" 
+                                        autocomplete="off" placeholder="Enter your first name" required 
+                                        onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight', '-'].includes(event.key)"/>
+                                <label for="inputFName">First Name</label>
+                            </div>
                         </div>
-                        
+                    </div>
+
+                    <!-- Section: Academic Info -->
+                    <div class="bg-white rounded-3 p-3 mb-3 shadow-sm">
+                        <div class="text-uppercase text-muted small fw-semibold mb-3 d-flex align-items-center gap-2">
+                            <i class="fa-duotone fa-solid fa-graduation-cap"></i> Academic Info
+                        </div>
+
                         <!-- Course Selection -->
-                        <div class="row g-3 mb-3">
+                        <div class="row g-3">
                             <div class="col-md-6">
+                                <label for="course" class="form-label small text-muted mb-1">Course</label>
                                 <select class="form-select form-select-lg" id="course" name="course" required>
                                     <option value="" disabled selected>Course</option>
                                     <?php
@@ -153,7 +195,8 @@ if (isset($_POST['Add'])) {
                             </div>
                             <!-- Year Level Selection -->    
                             <div class="col-md-6">
-                                <select class="form-select form-select-lg" name="yearlevel" required>
+                                <label for="yearlevel" class="form-label small text-muted mb-1">Year Level</label>
+                                <select class="form-select form-select-lg" id="yearlevel" name="yearlevel" required>
                                     <option value="">Year Level</option>
                                     <option value="1st Year">1st Year</option>
                                     <option value="2nd Year">2nd Year</option>
@@ -163,15 +206,20 @@ if (isset($_POST['Add'])) {
                                 </select>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Submit Button -->
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button class="btn btn-primary" type="submit" name="Add" value="Add">Save Profile</button>
-                        </div>
-                    </form>
-                    <!-- End of Form -->
-                </div>
+                    <!-- Submit Button -->
+                    <div class="modal-footer border-0 px-0 pb-0">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                            <i class="fa-duotone fa-solid fa-xmark me-1"></i> Close
+                        </button>
+                        <button class="btn btn-primary d-flex align-items-center gap-2" type="submit" name="Add" value="Add"
+                                style="background: linear-gradient(135deg, #22b573 0%, #16a085 100%); border:none;">
+                            <i class="fa-duotone fa-solid fa-floppy-disk"></i> Save Profile
+                        </button>
+                    </div>
+                </form>
+                <!-- End of Form -->
             </div>
         </div>
     </div>

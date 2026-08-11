@@ -497,6 +497,138 @@ if (isset($_SESSION['message'])) {
                             
                         </div>
                          
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fa-duotone fa-regular fa-file-spreadsheet"></i>
+                                Import Student Profiles
+                            </div>
+                            <div class="card-body">
+
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+                                    <!-- Import Button -->
+                                    <form method="POST" id="importTriggerForm">
+                                        <button type="button"
+                                                onclick="document.getElementById('importModal').style.display='flex'"
+                                                style="padding:10px 20px;background:#22b573;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            <i class="fa-duotone fa-regular fa-file-spreadsheet"></i>
+                                            Import from CSV / Excel
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                                <!-- Import Modal Overlay -->
+                                <div id="importModal" style="
+                                    display:none;
+                                    position:fixed;
+                                    top:0; left:0;
+                                    width:100%; height:100%;
+                                    background:rgba(0,0,0,0.5);
+                                    z-index:9999;
+                                    justify-content:center;
+                                    align-items:center;">
+
+                                    <!-- Modal Box -->
+                                    <div style="
+                                        background:white;
+                                        border-radius:10px;
+                                        padding:30px;
+                                        max-width:460px;
+                                        width:90%;
+                                        box-shadow:0 10px 30px rgba(0,0,0,0.3);
+                                        text-align:left;">
+
+                                        <!-- Icon + Title -->
+                                        <div style="text-align:center; margin-bottom:15px;">
+                                            <div style="font-size:44px; margin-bottom:8px;">📥</div>
+                                            <h3 style="margin:0; color:#22b573;">Import Student Profiles</h3>
+                                        </div>
+
+                                        <!-- Instructions -->
+                                        <div style="
+                                            background:#f9f9f9;
+                                            border:1px solid #ddd;
+                                            border-radius:8px;
+                                            padding:12px 14px;
+                                            font-size:13px;
+                                            color:#333;
+                                            line-height:1.7;
+                                            margin-bottom:18px;">
+                                            <strong>File requirements:</strong>
+                                            <ul style="margin:6px 0 0; padding-left:18px;">
+                                                <li>Format: <code>.csv</code> or <code>.xlsx</code></li>
+                                                <li>Column order: <code>studID, Lname, Fname, Course, YearLevel</code></li>
+                                                <li>YearLevel must be exactly: 1st Year, 2nd Year, 3rd Year, 4th Year, or None</li>
+                                                <li>Course must match an existing course code</li>
+                                                <li>Names are auto-corrected to proper case (e.g. <code>JOSE</code> → <code>Jose</code>)</li>
+                                                <li>Duplicate Student IDs are automatically skipped</li>
+                                            </ul>
+                                        </div>
+
+                                        <!-- Upload Form -->
+                                        <form method="POST"
+                                            action="pages/import.php"
+                                            enctype="multipart/form-data"
+                                            id="importForm">
+
+                                            <div style="margin-bottom:15px;">
+                                                <label for="importFile" style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+                                                    Select File
+                                                </label>
+                                                <input type="file"
+                                                    name="file"
+                                                    id="importFile"
+                                                    required
+                                                    accept=".csv,.xls,.xlsx"
+                                                    style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                                            </div>
+                                        </form>
+
+                                        <p style="color:#999; font-size:12px; margin-bottom:20px;">
+                                            💡 Tip: use the <strong>"Backup studtbl &amp; attendance"</strong> button
+                                            below before importing a large file.
+                                        </p>
+
+                                        <!-- Buttons -->
+                                        <div style="display:flex; gap:10px; justify-content:center;">
+
+                                            <!-- Cancel -->
+                                            <button type="button"
+                                                    onclick="document.getElementById('importModal').style.display='none'"
+                                                    style="
+                                                        padding:10px 25px;
+                                                        background:#ccc;
+                                                        color:#333;
+                                                        border:none;
+                                                        border-radius:5px;
+                                                        cursor:pointer;
+                                                        font-size:14px;">
+                                                ✖ Cancel
+                                            </button>
+
+                                            <!-- Confirm -->
+                                            <button type="submit"
+                                                    form="importForm"
+                                                    name="importBtn"
+                                                    style="
+                                                        padding:10px 25px;
+                                                        background:#22b573;
+                                                        color:white;
+                                                        border:none;
+                                                        border-radius:5px;
+                                                        cursor:pointer;
+                                                        font-size:14px;">
+                                                ✔ Import
+                                            </button>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
                         <div class="card mb-4"> 
                             <div class="card-header">
                                 <i class="fa-solid fa-graduation-cap"></i>
@@ -512,7 +644,7 @@ if (isset($_SESSION['message'])) {
                                                 onclick="document.getElementById('manualBackupModal').style.display='flex'"
                                                 style="padding:10px 20px;background:#198754;color:white;border:none;border-radius:5px;cursor:pointer;">
                                             <i class="fa-solid fa-database"></i>
-                                            Backup Student Table &amp; Attendance Table
+                                            Backup studtbl &amp; attendance
                                         </button>
                                     </form>
 
@@ -546,7 +678,7 @@ if (isset($_SESSION['message'])) {
                                             <!-- Description -->
                                             <p style="color:#555; font-size:14px; margin-bottom:15px;">
                                                 This will create a timestamped snapshot of both
-                                                <strong>Student Table</strong> and <strong>Attendance Table</strong>
+                                                <strong>studtbl</strong> and <strong>attendance</strong>
                                                 in their current state.
                                             </p>
 
@@ -785,4 +917,4 @@ if (isset($_SESSION['message'])) {
         </div>
         <?php include('pages/scripts.php');?>
     </body>
-</html>v
+</html>

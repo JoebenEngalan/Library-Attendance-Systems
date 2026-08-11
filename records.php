@@ -47,7 +47,7 @@ include 'pages/updateStud.php';
                             <?php include('pages/addStud.php');?>
                             <div class="card-body">
 
-                                <!-- Buttons & Import Form -->
+                                <!-- Buttons -->
                                 <div class="d-flex flex-column flex-md-row align-items-stretch gap-3 mb-3">
 
                                     <!-- Add Student Button -->
@@ -61,31 +61,6 @@ include 'pages/updateStud.php';
                                         <i class="fa-duotone fa-regular fa-user-plus"></i>
                                         <span class="d-none d-sm-inline">Add Student Profile</span>
                                     </button>
-
-                                    <!-- Import CSV -->
-                                    <form method="POST"
-                                        action="pages/import.php"
-                                        enctype="multipart/form-data"
-                                        class="ms-md-auto d-flex">
-
-                                        <div class="input-group input-group-lg">
-                                            <input type="file"
-                                                name="file"
-                                                required
-                                                class="form-control"
-                                                accept=".csv,.xls,.xlsx">
-
-                                            <button class="btn btn-success d-flex align-items-center gap-2 text-nowrap"
-                                                type="submit"
-                                                name="importBtn"
-                                                data-bs-toggle="tooltip"
-                                                data-bs-placement="bottom"
-                                                title="Import students from CSV or Excel">
-                                                <i class="fa-duotone fa-regular fa-file-spreadsheet"></i>
-                                                <span class="d-none d-sm-inline">Import</span>
-                                            </button>
-                                        </div>
-                                    </form>
 
                                 </div>
 
@@ -187,44 +162,85 @@ include 'pages/updateStud.php';
                         <!-- Edit Student Modal -->                        
                         <div class="modal fade" id="EditSudent" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editmodal" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
+                                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
-                                    <div class="modal-header">
-                                        <h1 class="modal-title fs-5" id="editmodal">Edit Student Profile</h1>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <!-- Gradient Header -->
+                                    <div class="modal-header border-0 text-white"
+                                         style="background: linear-gradient(135deg, #5678f5 0%, #7c5cf0 100%); padding: 1.5rem 1.75rem;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="d-flex align-items-center justify-content-center"
+                                                 style="width:48px; height:48px; background:rgba(255,255,255,0.2); border-radius:50%;">
+                                                <i class="fa-duotone fa-solid fa-user-pen fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h1 class="modal-title fs-5 mb-0" id="editmodal">Edit Student Profile</h1>
+                                                <div class="small opacity-75">Update this student's information</div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
 
-                                    <div class="modal-body">
-                                        <div class="card-body">
-                                            <form class="forms-sample" method="POST" action="">
-                                                
-                                                <!-- Hidden ID -->
-                                                <input type="hidden" name="id" id="edit_id">
+                                    <div class="modal-body p-4" style="background:#f9fafc;">
+                                        <form class="forms-sample" method="POST" action="">
+
+                                            <!-- Hidden ID -->
+                                            <input type="hidden" name="id" id="edit_id">
+
+                                            <!-- Section: Identity -->
+                                            <div class="bg-white rounded-3 p-3 mb-3 shadow-sm">
+                                                <div class="text-uppercase text-muted small fw-semibold mb-3 d-flex align-items-center gap-2">
+                                                    <i class="fa-duotone fa-solid fa-id-card"></i> Identity
+                                                </div>
 
                                                 <!-- Student ID -->
-                                                <div class="form-floating mb-3">
-                                                    <input class="form-control" name="edstudid" id="edstudid" type="text" required
-                                                    onkeydown="return /[a-zA-Z0-9]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight'].includes(event.key)">
-                                                    <label for="edstudid">Student / Visitor ID</label>
+                                                <div class="input-group input-group-lg mb-3">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="fa-duotone fa-solid fa-hashtag text-muted"></i>
+                                                    </span>
+                                                    <div class="form-floating">
+                                                        <input class="form-control border-start-0" name="edstudid" id="edstudid" type="text" required
+                                                            placeholder="Student ID"
+                                                            onkeydown="return /[a-zA-Z0-9]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight'].includes(event.key)">
+                                                        <label for="edstudid">Student / Visitor ID</label>
+                                                    </div>
                                                 </div>
 
                                                 <!-- Last Name -->
-                                                <div class="form-floating mb-3">
-                                                    <input class="form-control" name="LName" id="LName" type="text" required
-                                                    onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight','-'].includes(event.key)">
-                                                    <label for="LName">Last Name</label>
+                                                <div class="input-group input-group-lg mb-3">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="fa-duotone fa-solid fa-signature text-muted"></i>
+                                                    </span>
+                                                    <div class="form-floating">
+                                                        <input class="form-control border-start-0" name="LName" id="LName" type="text" required
+                                                            placeholder="Last Name"
+                                                            onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight','-'].includes(event.key)">
+                                                        <label for="LName">Last Name</label>
+                                                    </div>
                                                 </div>
 
                                                 <!-- First Name -->
-                                                <div class="form-floating mb-3">
-                                                    <input class="form-control" name="FName" id="FName" type="text" required
-                                                    onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight','-'].includes(event.key)">
-                                                    <label for="FName">First Name</label>
+                                                <div class="input-group input-group-lg">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="fa-duotone fa-solid fa-signature text-muted"></i>
+                                                    </span>
+                                                    <div class="form-floating">
+                                                        <input class="form-control border-start-0" name="FName" id="FName" type="text" required
+                                                            placeholder="First Name"
+                                                            onkeydown="return /[a-zA-Z]/i.test(event.key) || ['Backspace',' ','Delete','ArrowLeft','ArrowRight','-'].includes(event.key)">
+                                                        <label for="FName">First Name</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Section: Academic Info -->
+                                            <div class="bg-white rounded-3 p-3 mb-3 shadow-sm">
+                                                <div class="text-uppercase text-muted small fw-semibold mb-3 d-flex align-items-center gap-2">
+                                                    <i class="fa-duotone fa-solid fa-graduation-cap"></i> Academic Info
                                                 </div>
 
-                                                <!-- Course + Year -->
-                                                <div class="row mb-3">
+                                                <div class="row g-3">
                                                     <div class="col-md-6">
+                                                        <label for="editcourse" class="form-label small text-muted mb-1">Course</label>
                                                         <select class="form-select form-select-lg" id="editcourse" name="editcourse" required>
                                                             <option value="" disabled>Course</option>
                                                             <!-- Dynamically populate courses from coursetbl -->
@@ -241,6 +257,7 @@ include 'pages/updateStud.php';
                                                     </div>
 
                                                     <div class="col-md-6">
+                                                        <label for="edityearlevel" class="form-label small text-muted mb-1">Year Level</label>
                                                         <select class="form-select form-select-lg" id="edityearlevel" name="edityearlevel" required>
                                                             <option value="">Year Level</option>
                                                             <option value="1st Year">1st Year</option>
@@ -251,34 +268,44 @@ include 'pages/updateStud.php';
                                                         </select>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            <!-- Section: Status -->
+                                            <div class="bg-white rounded-3 p-3 mb-3 shadow-sm">
+                                                <div class="text-uppercase text-muted small fw-semibold mb-3 d-flex align-items-center gap-2">
+                                                    <i class="fa-duotone fa-solid fa-circle-check"></i> Status
+                                                </div>
 
                                                 <!-- STATUS -->
-                                                <div class="form-floating mb-4">
+                                                <div class="form-floating mb-3">
                                                     <select class="form-select" name="status" id="editstatus" required>
-                                                        <option value="ACTIVE">ACTIVE</option>
-                                                        <option value="SUSPENDED">SUSPENDED</option>
-                                                        <option value="INACTIVE">INACTIVE</option>
-                                                        <option value="GRADUATED">GRADUATED</option>
+                                                        <option value="ACTIVE">🟢 ACTIVE</option>
+                                                        <option value="SUSPENDED">🟠 SUSPENDED</option>
+                                                        <option value="INACTIVE">⚪ INACTIVE</option>
+                                                        <option value="GRADUATED">🎓 GRADUATED</option>
                                                     </select>
                                                     <label for="editstatus">Status</label>
                                                 </div>
 
                                                 <!-- REMARKS -->
-                                                <div class="form-floating mb-3">
+                                                <div class="form-floating">
                                                     <textarea class="form-control" name="remarks" id="editremarks"
-                                                            style="height: 100px"></textarea>
+                                                            placeholder="Remarks" style="height: 90px"></textarea>
                                                     <label for="editremarks">Remarks</label>
                                                 </div>
+                                            </div>
 
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    <button type="submit" name="updateStudent" class="btn btn-primary">
-                                                        Save Changes
-                                                    </button>
-                                                </div>
+                                            <div class="modal-footer border-0 px-0 pb-0">
+                                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                                                    <i class="fa-duotone fa-solid fa-xmark me-1"></i> Close
+                                                </button>
+                                                <button type="submit" name="updateStudent" class="btn btn-primary d-flex align-items-center gap-2"
+                                                        style="background: linear-gradient(135deg, #5678f5 0%, #7c5cf0 100%); border:none;">
+                                                    <i class="fa-duotone fa-solid fa-floppy-disk"></i> Save Changes
+                                                </button>
+                                            </div>
 
-                                            </form>
-                                        </div>
+                                        </form>
                                     </div>
 
                                 </div>
