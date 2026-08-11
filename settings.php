@@ -53,6 +53,68 @@ if ($stmt->rowCount() > 0) {
 }
 
 
+/*
+|--------------------------------------------------------------------------
+| MANUAL BACKUP — studtbl & attendance
+| On-demand snapshot of both tables, independent of the rollover process.
+| Useful before making manual corrections (e.g. fixing typo'd IDs/names).
+|--------------------------------------------------------------------------
+*/
+if (isset($_POST['manual_backup'])) {
+
+    try {
+
+        $timestamp = date("Ymd_His");
+        $studBackupTable = "studtbl_backup_" . $timestamp;
+        $attendanceBackupTable = "attendance_backup_" . $timestamp;
+
+        $dbh->beginTransaction();
+
+        $dbh->exec("CREATE TABLE `{$studBackupTable}` LIKE studtbl");
+        $dbh->exec("INSERT INTO `{$studBackupTable}` SELECT * FROM studtbl");
+
+        $dbh->exec("CREATE TABLE `{$attendanceBackupTable}` LIKE attendance");
+        $dbh->exec("INSERT INTO `{$attendanceBackupTable}` SELECT * FROM attendance");
+
+        $dbh->commit();
+
+        $_SESSION['message'] = "
+        <div style='
+            padding:10px;
+            background:#d4edda;
+            color:#155724;
+            border-radius:5px;
+            margin-bottom:10px;'>
+
+            💾 Manual backup created successfully.<br><br>
+
+            📋 studtbl → <code>{$studBackupTable}</code><br>
+            📋 attendance → <code>{$attendanceBackupTable}</code>
+        </div>";
+
+    } catch (Exception $e) {
+
+        if ($dbh->inTransaction()) {
+            $dbh->rollBack();
+        }
+
+        $_SESSION['message'] = "
+        <div style='
+            padding:10px;
+            background:#f8d7da;
+            color:#721c24;
+            border-radius:5px;
+            margin-bottom:10px;'>
+
+            ❌ Error while creating manual backup.
+        </div>";
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+
 if (isset($_POST['rollover_students'])) {
 
     try {
@@ -444,6 +506,91 @@ if (isset($_SESSION['message'])) {
 
                                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
 
+                                    <!-- Manual Backup Button -->
+                                    <form method="POST" id="manualBackupForm">
+                                        <button type="button"
+                                                onclick="document.getElementById('manualBackupModal').style.display='flex'"
+                                                style="padding:10px 20px;background:#198754;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            <i class="fa-solid fa-database"></i>
+                                            Backup Student Table &amp; Attendance Table
+                                        </button>
+                                    </form>
+
+                                    <!-- Manual Backup Modal Overlay -->
+                                    <div id="manualBackupModal" style="
+                                        display:none;
+                                        position:fixed;
+                                        top:0; left:0;
+                                        width:100%; height:100%;
+                                        background:rgba(0,0,0,0.5);
+                                        z-index:9999;
+                                        justify-content:center;
+                                        align-items:center;">
+
+                                        <!-- Modal Box -->
+                                        <div style="
+                                            background:white;
+                                            border-radius:10px;
+                                            padding:30px;
+                                            max-width:420px;
+                                            width:90%;
+                                            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+                                            text-align:center;">
+
+                                            <!-- Icon -->
+                                            <div style="font-size:48px; margin-bottom:10px;">💾</div>
+
+                                            <!-- Title -->
+                                            <h3 style="margin:0 0 10px; color:#198754;">Create Manual Backup</h3>
+
+                                            <!-- Description -->
+                                            <p style="color:#555; font-size:14px; margin-bottom:15px;">
+                                                This will create a timestamped snapshot of both
+                                                <strong>Student Table</strong> and <strong>Attendance Table</strong>
+                                                in their current state.
+                                            </p>
+
+                                            <!-- Note -->
+                                            <p style="color:#999; font-size:12px; margin-bottom:20px;">
+                                                ℹ️ No existing data is changed — this only adds two new backup tables.
+                                            </p>
+
+                                            <!-- Buttons -->
+                                            <div style="display:flex; gap:10px; justify-content:center;">
+
+                                                <!-- Cancel -->
+                                                <button type="button"
+                                                        onclick="document.getElementById('manualBackupModal').style.display='none'"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#ccc;
+                                                            color:#333;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✖ Cancel
+                                                </button>
+
+                                                <!-- Confirm -->
+                                                <button type="submit"
+                                                        form="manualBackupForm"
+                                                        name="manual_backup"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#198754;
+                                                            color:white;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✔ Yes, Backup Now
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Rollover Button -->
                                     <form method="POST" id="rolloverForm">
                                         <button type="button"
@@ -638,4 +785,4 @@ if (isset($_SESSION['message'])) {
         </div>
         <?php include('pages/scripts.php');?>
     </body>
-</html>
+</html>v
