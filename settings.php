@@ -53,68 +53,6 @@ if ($stmt->rowCount() > 0) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| MANUAL BACKUP — studtbl & attendance
-| On-demand snapshot of both tables, independent of the rollover process.
-| Useful before making manual corrections (e.g. fixing typo'd IDs/names).
-|--------------------------------------------------------------------------
-*/
-if (isset($_POST['manual_backup'])) {
-
-    try {
-
-        $timestamp = date("Ymd_His");
-        $studBackupTable = "studtbl_backup_" . $timestamp;
-        $attendanceBackupTable = "attendance_backup_" . $timestamp;
-
-        $dbh->beginTransaction();
-
-        $dbh->exec("CREATE TABLE `{$studBackupTable}` LIKE studtbl");
-        $dbh->exec("INSERT INTO `{$studBackupTable}` SELECT * FROM studtbl");
-
-        $dbh->exec("CREATE TABLE `{$attendanceBackupTable}` LIKE attendance");
-        $dbh->exec("INSERT INTO `{$attendanceBackupTable}` SELECT * FROM attendance");
-
-        $dbh->commit();
-
-        $_SESSION['message'] = "
-        <div style='
-            padding:10px;
-            background:#d4edda;
-            color:#155724;
-            border-radius:5px;
-            margin-bottom:10px;'>
-
-            💾 Manual backup created successfully.<br><br>
-
-            📋 studtbl → <code>{$studBackupTable}</code><br>
-            📋 attendance → <code>{$attendanceBackupTable}</code>
-        </div>";
-
-    } catch (Exception $e) {
-
-        if ($dbh->inTransaction()) {
-            $dbh->rollBack();
-        }
-
-        $_SESSION['message'] = "
-        <div style='
-            padding:10px;
-            background:#f8d7da;
-            color:#721c24;
-            border-radius:5px;
-            margin-bottom:10px;'>
-
-            ❌ Error while creating manual backup.
-        </div>";
-    }
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-
 if (isset($_POST['rollover_students'])) {
 
     try {
@@ -323,6 +261,67 @@ if (isset($_POST['reset_rollover'])) {
     exit();
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| MANUAL BACKUP — studtbl & attendance
+| On-demand snapshot of both tables, independent of the rollover process.
+|--------------------------------------------------------------------------
+*/
+if (isset($_POST['manual_backup'])) {
+
+    try {
+
+        $timestamp = date("Ymd_His");
+        $studBackupTable = "studtbl_backup_" . $timestamp;
+        $attendanceBackupTable = "attendance_backup_" . $timestamp;
+
+        $dbh->beginTransaction();
+
+        $dbh->exec("CREATE TABLE `{$studBackupTable}` LIKE studtbl");
+        $dbh->exec("INSERT INTO `{$studBackupTable}` SELECT * FROM studtbl");
+
+        $dbh->exec("CREATE TABLE `{$attendanceBackupTable}` LIKE attendance");
+        $dbh->exec("INSERT INTO `{$attendanceBackupTable}` SELECT * FROM attendance");
+
+        $dbh->commit();
+
+        $_SESSION['message'] = "
+        <div style='
+            padding:10px;
+            background:#d4edda;
+            color:#155724;
+            border-radius:5px;
+            margin-bottom:10px;'>
+
+            💾 Manual backup created successfully.<br><br>
+
+            📋 studtbl → <code>{$studBackupTable}</code><br>
+            📋 attendance → <code>{$attendanceBackupTable}</code>
+        </div>";
+
+    } catch (Exception $e) {
+
+        if ($dbh->inTransaction()) {
+            $dbh->rollBack();
+        }
+
+        $_SESSION['message'] = "
+        <div style='
+            padding:10px;
+            background:#f8d7da;
+            color:#721c24;
+            border-radius:5px;
+            margin-bottom:10px;'>
+
+            ❌ Error while creating manual backup.
+        </div>";
+    }
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
 ?>
 
 <!-- Display Session Message -->
@@ -353,7 +352,7 @@ if (isset($_SESSION['message'])) {
                                 Manual Time Out (Power Interruption Recovery)
                             </div>
                             <div class="card-body">
-                                
+
                                 <?php if (!empty($message)) { ?>
                                     <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
                                 <?php echo $message; ?>
@@ -361,60 +360,18 @@ if (isset($_SESSION['message'])) {
                                     </div>
                                 <?php } ?>
 
-                                <form method="POST">
-
-                                    <div class="row">
-
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Student ID Number</label>
-                                            <input type="text" name="id_number" class="form-control" required>
-                                        </div>
-
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Date</label>
-                                            <input type="date" name="date_out" 
-                                            class="form-control"
-                                            required>
-                                        </div>
-
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Time Out</label>
-                                            <input type="time" name="time_out" 
-                                            class="form-control"
-                                            required>
-                                        </div>
-
-                                        <div class="col-md-3 d-flex align-items-end mb-3">
-                                            <button type="submit" name="manual_timeout" class="btn btn-danger w-100">
-                                                <i class="fa-solid fa-right-from-bracket"></i> Record Manual Time Out
-                                            </button>
-                                        </div>
-
-                                    </div>
-
-                                </form>
-
-                            </div>                    
-                        </div>
-                        
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fa-solid fa-clock"></i>
-                                Manual Time Out (Power Interruption Recovery)
-                            </div>
-                            <div class="card-body">
                                 <div class="table-responsive">
-                                    <table id="AttendTable" class="table table-striped table-hover mb-0">
+                                    <table id="datatablesSimple" class="table table-striped table-hover mb-0">
                                         <thead class="table-dark">
                                             <tr>
-                                            <th class="text-left">Time Out</th>
+                                            <th class="text-left">Status</th>
                                             <th class="text-left">Time In</th>
                                             <th class="text-left">Date In</th>
                                             <th class="text-right">ID</th>
                                             <th class="text-center">Full Name</th>
                                             <th class="text-left">Course</th>
                                             <th class="text-left">Year Level</th>
-                                            <th class="d-none">MonthYear</th>
+                                            <th>Action</th>
                                             </tr>
                                         </thead>
 
@@ -436,18 +393,25 @@ if (isset($_SESSION['message'])) {
                                         <?php foreach ($results as $row): ?>
                                         <tr class="table-danger">
 
+                                            <!-- STATUS (Badge Style) -->
                                             <td>
                                                 <?php 
                                                     $timeout = trim($row->time_out);
 
                                                     if ($timeout === "23:59:59") {
-                                                        echo "Didn't Timeout";
+                                                        $statusLabel = "Didn't Timeout";
+                                                        $badge = "danger";
                                                     } elseif ($timeout === "" || $timeout === null) {
-                                                        echo "Still Inside";
+                                                        $statusLabel = "Still Inside";
+                                                        $badge = "warning text-dark";
                                                     } else {
-                                                        echo date("h:i A", strtotime($timeout));
+                                                        $statusLabel = date("h:i A", strtotime($timeout));
+                                                        $badge = "success";
                                                     }
                                                 ?>
+                                                <span class="badge bg-<?php echo $badge; ?>">
+                                                    <?php echo $statusLabel; ?>
+                                                </span>
                                             </td>
 
                                             <td>
@@ -474,8 +438,16 @@ if (isset($_SESSION['message'])) {
                                                 <?php echo htmlspecialchars($row->yearlevel); ?>
                                             </td>
 
-                                            <td class="d-none">
-                                                <?php echo date('F Y', strtotime($row->date_in)); ?>
+                                            <!-- ACTION -->
+                                            <td>
+                                                <a href="#"
+                                                   class="edit_timeout btn btn-sm btn-secondary"
+                                                   data-idnumber="<?php echo htmlspecialchars($row->id_number); ?>"
+                                                   data-date="<?php echo date('Y-m-d', strtotime($row->date_in)); ?>"
+                                                   onclick="openManualTimeoutModal(this); return false;">
+                                                    <i class="fa-duotone fa-solid fa-pen-to-square"></i>
+                                                    <span class="d-none d-sm-inline"> Edit</span>
+                                                </a>
                                             </td>
 
                                         </tr>
@@ -484,7 +456,7 @@ if (isset($_SESSION['message'])) {
                                             <?php else: ?>
 
                                         <tr>
-                                            <td class="text-center" colspan="6">No "Didn't Timeout" records found</td>
+                                            <td class="text-center" colspan="8">No "Didn't Timeout" records found</td>
                                         </tr>
 
                                         <?php endif; ?>
@@ -494,13 +466,119 @@ if (isset($_SESSION['message'])) {
                                     </table>
                                 </div>
                             </div>
-                            
+
+                            <!-- Manual Time Out Modal Overlay -->
+                            <div id="manualTimeoutModal" style="
+                                display:none;
+                                position:fixed;
+                                top:0; left:0;
+                                width:100%; height:100%;
+                                background:rgba(0,0,0,0.5);
+                                z-index:9999;
+                                justify-content:center;
+                                align-items:center;">
+
+                                <!-- Modal Box -->
+                                <div style="
+                                    background:white;
+                                    border-radius:10px;
+                                    padding:30px;
+                                    max-width:460px;
+                                    width:90%;
+                                    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+                                    text-align:left;">
+
+                                    <!-- Icon + Title -->
+                                    <div style="text-align:center; margin-bottom:15px;">
+                                        <div style="font-size:44px; margin-bottom:8px;">⏱️</div>
+                                        <h3 style="margin:0; color:#dc3545;">Record Manual Time Out</h3>
+                                    </div>
+
+                                    <p style="color:#555; font-size:14px; margin-bottom:15px; text-align:center;">
+                                        Use this to close out an attendance record left open by a
+                                        power interruption.
+                                    </p>
+
+                                    <!-- Time Out Form -->
+                                    <form method="POST" id="manualTimeoutForm">
+
+                                        <div style="margin-bottom:12px;">
+                                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+                                                Student ID Number
+                                            </label>
+                                            <input type="text" name="id_number" id="mto_id_number" required
+                                                style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                                        </div>
+
+                                        <div style="margin-bottom:12px;">
+                                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+                                                Date
+                                            </label>
+                                            <input type="date" name="date_out" id="mto_date_out" required
+                                                style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                                        </div>
+
+                                        <div style="margin-bottom:5px;">
+                                            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+                                                Time Out
+                                            </label>
+                                            <input type="time" name="time_out" id="mto_time_out" required
+                                                style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                                        </div>
+
+                                    </form>
+
+                                    <!-- Buttons -->
+                                    <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+
+                                        <!-- Cancel -->
+                                        <button type="button"
+                                                onclick="document.getElementById('manualTimeoutModal').style.display='none'"
+                                                style="
+                                                    padding:10px 25px;
+                                                    background:#ccc;
+                                                    color:#333;
+                                                    border:none;
+                                                    border-radius:5px;
+                                                    cursor:pointer;
+                                                    font-size:14px;">
+                                            ✖ Cancel
+                                        </button>
+
+                                        <!-- Confirm -->
+                                        <button type="submit"
+                                                form="manualTimeoutForm"
+                                                name="manual_timeout"
+                                                style="
+                                                    padding:10px 25px;
+                                                    background:#dc3545;
+                                                    color:white;
+                                                    border:none;
+                                                    border-radius:5px;
+                                                    cursor:pointer;
+                                                    font-size:14px;">
+                                            ✔ Record Time Out
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script>
+                                function openManualTimeoutModal(el) {
+                                    document.getElementById('mto_id_number').value = el.dataset.idnumber;
+                                    document.getElementById('mto_date_out').value = el.dataset.date;
+                                    document.getElementById('mto_time_out').value = '';
+                                    document.getElementById('manualTimeoutModal').style.display = 'flex';
+                                }
+                            </script>
+
                         </div>
                          
-                        <div class="card mb-4">
+                        <div class="card mb-4"> 
                             <div class="card-header">
-                                <i class="fa-duotone fa-regular fa-file-spreadsheet"></i>
-                                Import Student Profiles
+                                <i class="fa-solid fa-graduation-cap"></i>
+                                Student Data Management (Import, Backup, and Rollover)
                             </div>
                             <div class="card-body">
 
@@ -516,7 +594,33 @@ if (isset($_SESSION['message'])) {
                                         </button>
                                     </form>
 
-                                </div>
+                                    <!-- Manual Backup Button -->
+                                    <form method="POST" id="manualBackupForm">
+                                        <button type="button"
+                                                onclick="document.getElementById('manualBackupModal').style.display='flex'"
+                                                style="padding:10px 20px;background:#198754;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            <i class="fa-solid fa-database"></i>
+                                            Backup studtbl &amp; attendance
+                                        </button>
+                                    </form>
+
+                                    <!-- Rollover Button -->
+                                    <form method="POST" id="rolloverForm">
+                                        <button type="button"
+                                                onclick="document.getElementById('rolloverModal').style.display='flex'"
+                                                style="padding:10px 20px;background:#5678f5;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            Run Student Yearly Rollover
+                                        </button>
+                                    </form>
+
+                                    <!-- Reset Rollover Button -->
+                                    <form method="POST" id="resetRolloverForm">
+                                        <button type="button"
+                                                onclick="document.getElementById('resetRolloverModal').style.display='flex'"
+                                                style="padding:10px 20px;background:#8f0419;color:white;border:none;border-radius:5px;cursor:pointer;">
+                                            Reset Rollover
+                                        </button>
+                                    </form>
 
                                 <!-- Import Modal Overlay -->
                                 <div id="importModal" style="
@@ -626,120 +730,80 @@ if (isset($_SESSION['message'])) {
                                     </div>
                                 </div>
 
-                            </div>
-                        </div>
+                                <!-- Manual Backup Modal Overlay -->
+                                <div id="manualBackupModal" style="
+                                    display:none;
+                                    position:fixed;
+                                    top:0; left:0;
+                                    width:100%; height:100%;
+                                    background:rgba(0,0,0,0.5);
+                                    z-index:9999;
+                                    justify-content:center;
+                                    align-items:center;">
 
-                        <div class="card mb-4"> 
-                            <div class="card-header">
-                                <i class="fa-solid fa-graduation-cap"></i>
-                                Student Rollover (Promote Students to Next Year Level or Graduate to Alumni)
-                            </div>
-                            <div class="card-body">
+                                    <!-- Modal Box -->
+                                    <div style="
+                                        background:white;
+                                        border-radius:10px;
+                                        padding:30px;
+                                        max-width:420px;
+                                        width:90%;
+                                        box-shadow:0 10px 30px rgba(0,0,0,0.3);
+                                        text-align:center;">
 
-                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                        <!-- Icon -->
+                                        <div style="font-size:48px; margin-bottom:10px;">💾</div>
 
-                                    <!-- Manual Backup Button -->
-                                    <form method="POST" id="manualBackupForm">
-                                        <button type="button"
-                                                onclick="document.getElementById('manualBackupModal').style.display='flex'"
-                                                style="padding:10px 20px;background:#198754;color:white;border:none;border-radius:5px;cursor:pointer;">
-                                            <i class="fa-solid fa-database"></i>
-                                            Backup studtbl &amp; attendance
-                                        </button>
-                                    </form>
+                                        <!-- Title -->
+                                        <h3 style="margin:0 0 10px; color:#198754;">Create Manual Backup</h3>
 
-                                    <!-- Manual Backup Modal Overlay -->
-                                    <div id="manualBackupModal" style="
-                                        display:none;
-                                        position:fixed;
-                                        top:0; left:0;
-                                        width:100%; height:100%;
-                                        background:rgba(0,0,0,0.5);
-                                        z-index:9999;
-                                        justify-content:center;
-                                        align-items:center;">
+                                        <!-- Description -->
+                                        <p style="color:#555; font-size:14px; margin-bottom:15px;">
+                                            This will create a timestamped snapshot of both
+                                            <strong>studtbl</strong> and <strong>attendance</strong>
+                                            in their current state.
+                                        </p>
 
-                                        <!-- Modal Box -->
-                                        <div style="
-                                            background:white;
-                                            border-radius:10px;
-                                            padding:30px;
-                                            max-width:420px;
-                                            width:90%;
-                                            box-shadow:0 10px 30px rgba(0,0,0,0.3);
-                                            text-align:center;">
+                                        <!-- Note -->
+                                        <p style="color:#999; font-size:12px; margin-bottom:20px;">
+                                            ℹ️ No existing data is changed — this only adds two new backup tables.
+                                        </p>
 
-                                            <!-- Icon -->
-                                            <div style="font-size:48px; margin-bottom:10px;">💾</div>
+                                        <!-- Buttons -->
+                                        <div style="display:flex; gap:10px; justify-content:center;">
 
-                                            <!-- Title -->
-                                            <h3 style="margin:0 0 10px; color:#198754;">Create Manual Backup</h3>
+                                            <!-- Cancel -->
+                                            <button type="button"
+                                                    onclick="document.getElementById('manualBackupModal').style.display='none'"
+                                                    style="
+                                                        padding:10px 25px;
+                                                        background:#ccc;
+                                                        color:#333;
+                                                        border:none;
+                                                        border-radius:5px;
+                                                        cursor:pointer;
+                                                        font-size:14px;">
+                                                ✖ Cancel
+                                            </button>
 
-                                            <!-- Description -->
-                                            <p style="color:#555; font-size:14px; margin-bottom:15px;">
-                                                This will create a timestamped snapshot of both
-                                                <strong>studtbl</strong> and <strong>attendance</strong>
-                                                in their current state.
-                                            </p>
+                                            <!-- Confirm -->
+                                            <button type="submit"
+                                                    form="manualBackupForm"
+                                                    name="manual_backup"
+                                                    style="
+                                                        padding:10px 25px;
+                                                        background:#198754;
+                                                        color:white;
+                                                        border:none;
+                                                        border-radius:5px;
+                                                        cursor:pointer;
+                                                        font-size:14px;">
+                                                ✔ Yes, Backup Now
+                                            </button>
 
-                                            <!-- Note -->
-                                            <p style="color:#999; font-size:12px; margin-bottom:20px;">
-                                                ℹ️ No existing data is changed — this only adds two new backup tables.
-                                            </p>
-
-                                            <!-- Buttons -->
-                                            <div style="display:flex; gap:10px; justify-content:center;">
-
-                                                <!-- Cancel -->
-                                                <button type="button"
-                                                        onclick="document.getElementById('manualBackupModal').style.display='none'"
-                                                        style="
-                                                            padding:10px 25px;
-                                                            background:#ccc;
-                                                            color:#333;
-                                                            border:none;
-                                                            border-radius:5px;
-                                                            cursor:pointer;
-                                                            font-size:14px;">
-                                                    ✖ Cancel
-                                                </button>
-
-                                                <!-- Confirm -->
-                                                <button type="submit"
-                                                        form="manualBackupForm"
-                                                        name="manual_backup"
-                                                        style="
-                                                            padding:10px 25px;
-                                                            background:#198754;
-                                                            color:white;
-                                                            border:none;
-                                                            border-radius:5px;
-                                                            cursor:pointer;
-                                                            font-size:14px;">
-                                                    ✔ Yes, Backup Now
-                                                </button>
-
-                                            </div>
                                         </div>
                                     </div>
-
-                                    <!-- Rollover Button -->
-                                    <form method="POST" id="rolloverForm">
-                                        <button type="button"
-                                                onclick="document.getElementById('rolloverModal').style.display='flex'"
-                                                style="padding:10px 20px;background:#5678f5;color:white;border:none;border-radius:5px;cursor:pointer;">
-                                            Run Student Yearly Rollover
-                                        </button>
-                                    </form>
-
-                                    <!-- Reset Rollover Button -->
-                                    <form method="POST" id="resetRolloverForm">
-                                        <button type="button"
-                                                onclick="document.getElementById('resetRolloverModal').style.display='flex'"
-                                                style="padding:10px 20px;background:#8f0419;color:white;border:none;border-radius:5px;cursor:pointer;">
-                                            Reset Rollover
-                                        </button>
-                                    </form>
+                                </div>
 
                                     <!-- Reset Rollover Modal Overlay -->
                                     <div id="resetRolloverModal" style="
