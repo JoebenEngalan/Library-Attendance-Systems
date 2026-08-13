@@ -62,7 +62,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3><?php echo date('F'); ?></h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Total Attendance: <?php echo $total; ?></p>
+                                                    <p class="h5">Total Attendance: <span id="stat-total-attendance"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -85,7 +85,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3><?php echo date('F'); ?></h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Total Time Out: <?php echo $total; ?></p>
+                                                    <p class="h5">Total Time Out: <span id="stat-total-timeout"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -107,7 +107,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3><?php echo date('F'); ?></h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Did not Time Out: <?php echo $total; ?></p>
+                                                    <p class="h5">Did not Time Out: <span id="stat-no-timeout"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -131,7 +131,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BSBA MM</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5">Log-In Students: <span id="stat-bsba-mm"><?php echo $total; ?></span></p>
                                                 </div> 
                                             </div>
                                         </div>
@@ -154,7 +154,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BSBA FM</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5">Log-In Students: <span id="stat-bsba-fm"><?php echo $total; ?></span></p>
                                                 </div>                                    
                                             </div>
                                         </div>
@@ -177,7 +177,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BSBA HRM</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5">Log-In Students: <span id="stat-bsba-hrm"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -200,7 +200,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BSA</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5">Log-In Students: <span id="stat-bsa"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -223,7 +223,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BSEd SS</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5">Log-In Students: <span id="stat-bsed-ss"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -246,7 +246,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BSEd English</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5">Log-In Students: <span id="stat-bsed-english"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -269,7 +269,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BSEd Math</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5">Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5">Log-In Students: <span id="stat-bsed-math"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -292,7 +292,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     ?>
                                                     <h3>BEEd</h3>
                                                     <i class="fa-duotone fa-solid fa-users"></i>
-                                                    <p class="h5"> Log-In Students: <?php echo $total; ?></p>
+                                                    <p class="h5"> Log-In Students: <span id="stat-beed"><?php echo $total; ?></span></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -392,10 +392,18 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
 
                         <script>
-                            // Polls pages/get_today_attendance.php every 8 seconds and
-                            // refreshes the "Todays Attendance Records" table in place,
-                            // using the DataTable API so paging/search state isn't disturbed.
+                            // Polls pages/get_today_attendance.php every 8 seconds and refreshes
+                            // both the "Todays Attendance Overview" stat cards and the
+                            // "Todays Attendance Records" table, using the DataTable API for the
+                            // table so paging/search state isn't disturbed.
                             document.addEventListener("DOMContentLoaded", function () {
+
+                                function setStat(id, value) {
+                                    var el = document.getElementById(id);
+                                    if (el) {
+                                        el.textContent = value;
+                                    }
+                                }
 
                                 function loadTodayAttendance() {
                                     fetch('pages/get_today_attendance.php')
@@ -406,10 +414,25 @@ if (!isset($_SESSION['user_id'])) {
                                                 return;
                                             }
 
+                                            // --- Overview stat cards ---
+                                            var o = data.overview;
+                                            setStat('stat-total-attendance', o.total_attendance);
+                                            setStat('stat-total-timeout', o.total_timeout);
+                                            setStat('stat-no-timeout', o.no_timeout);
+                                            setStat('stat-bsba-mm', o.bsba_mm);
+                                            setStat('stat-bsba-fm', o.bsba_fm);
+                                            setStat('stat-bsba-hrm', o.bsba_hrm);
+                                            setStat('stat-bsa', o.bsa);
+                                            setStat('stat-bsed-ss', o.bsed_ss);
+                                            setStat('stat-bsed-english', o.bsed_english);
+                                            setStat('stat-bsed-math', o.bsed_math);
+                                            setStat('stat-beed', o.beed);
+
+                                            // --- Attendance records table ---
                                             var dt = new DataTable('#maindattables');
                                             dt.clear();
 
-                                            data.forEach(function (row) {
+                                            data.rows.forEach(function (row) {
                                                 dt.row.add([
                                                     row.time_out,
                                                     row.date_in,
