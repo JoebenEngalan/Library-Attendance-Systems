@@ -337,7 +337,7 @@ if (!isset($_SESSION['user_id'])) {
                                             $results = $query->fetchAll(PDO::FETCH_OBJ);
                                         ?>
 
-                                        <tbody>
+                                        <tbody id="todayAttendanceBody">
                                             <?php if ($query->rowCount() > 0): ?>
                                                 <?php foreach ($results as $row): ?>
                                                     <tr>
@@ -390,6 +390,47 @@ if (!isset($_SESSION['user_id'])) {
                                 </div>
                             </div>
                         </div>
+
+                        <script>
+                            // Polls pages/get_today_attendance.php every 8 seconds and
+                            // refreshes the "Todays Attendance Records" table in place,
+                            // using the DataTable API so paging/search state isn't disturbed.
+                            document.addEventListener("DOMContentLoaded", function () {
+
+                                function loadTodayAttendance() {
+                                    fetch('pages/get_today_attendance.php')
+                                        .then(function (res) { return res.json(); })
+                                        .then(function (data) {
+                                            if (data.error) {
+                                                console.error('Attendance poll error:', data.error);
+                                                return;
+                                            }
+
+                                            var dt = new DataTable('#maindattables');
+                                            dt.clear();
+
+                                            data.forEach(function (row) {
+                                                dt.row.add([
+                                                    row.time_out,
+                                                    row.date_in,
+                                                    row.time_in,
+                                                    row.id,
+                                                    row.fullname,
+                                                    row.course,
+                                                    row.yearlevel
+                                                ]);
+                                            });
+
+                                            dt.draw(false); // false = keep current page/search state
+                                        })
+                                        .catch(function (err) {
+                                            console.error('Attendance poll failed:', err);
+                                        });
+                                }
+
+                                setInterval(loadTodayAttendance, 8000);
+                            });
+                        </script>
 
                     </div>
                 </main>
