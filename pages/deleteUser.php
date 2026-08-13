@@ -41,10 +41,22 @@ if ($targetUser->role === 'Main Admin' && $_SESSION['role'] !== 'Main Admin') {
 }
 
 /* 🗑 STEP 4: Delete user */
-$stmt = $dbh->prepare("DELETE FROM users WHERE user_id = :user_id");
-$stmt->execute([':user_id' => $user_id]);
+try {
+    $stmt = $dbh->prepare("DELETE FROM users WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $user_id]);
 
-$_SESSION['success'] = "User deleted successfully.";
+    $_SESSION['success'] = "User deleted successfully.";
+
+} catch (PDOException $e) {
+
+    // SQLSTATE 23000 = integrity constraint violation (e.g. foreign key)
+    if ($e->getCode() == '23000') {
+        $_SESSION['error'] = "This user cannot be deleted because they have related records (e.g. activity logs) still linked to their account.";
+    } else {
+        $_SESSION['error'] = "Failed to delete user due to a database error.";
+    }
+}
+
 header("Location: ../activitylog.php");
 exit;
 ?>
