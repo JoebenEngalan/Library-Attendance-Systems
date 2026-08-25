@@ -52,119 +52,22 @@ if (isset($_GET['color'])) {
                         </ol>
 				
 						<div class="row">
-							<!-- Courses Form -->
-							<div class="col-12 col-md-4">
+							<!-- Courses List -->
+							<div class="col-12">
 								<div class="card mb-3">
-
-									<div class="card-header d-flex align-items-center justify-content-between">
+									<div class="card-header d-flex justify-content-between align-items-center">
 										<span>
-											<i class="fa-solid fa-file-circle-plus me-1"></i>
-											Courses Form
+											<i class="fa-solid fa-table-list"></i> Courses List
 										</span>
 
-										<!-- Collapse Toggle (Right Side) -->
-										<button class="btn btn-sm btn-outline-secondary"
-												type="button"
-												data-bs-toggle="collapse"
-												data-bs-target="#courseFormCollapse"
-												aria-expanded="true"
-												aria-controls="courseFormCollapse">
-											<i class="fa-solid fa-chevron-down"></i>
+										<button type="button"
+												class="btn btn-primary btn-sm"
+												data-bs-toggle="modal"
+												data-bs-target="#courseModal"
+												onclick="resetCourseModal()">
+											<i class="fa-solid fa-plus"></i>
+											<span class="d-none d-sm-inline">Add New Course</span>
 										</button>
-									</div>
-
-									<!-- Collapsible Body -->
-									<div id="courseFormCollapse" class="collapse show">
-										<div class="card-body">
-
-											<form class="forms-sample form-horizontal" method="post">
-
-												<input type="hidden" name="Cid" value="<?php echo htmlspecialchars($id); ?>">
-
-												<div class="form-floating mb-3">
-													<input class="form-control"
-														name="CourseN"
-														id="CourseN"
-														type="text"
-														autocomplete="off"
-														required
-														onkeydown="return /[a-zA-Z]/i.test(event.key)"
-														value="<?php echo htmlspecialchars($cname); ?>"/>
-													<label for="CourseN">Course Fullname</label>
-												</div>
-
-												<div class="form-floating mb-3">
-													<input class="form-control"
-														name="Courseabv"
-														id="Courseabv"
-														type="text"
-														autocomplete="off"
-														required
-														onkeydown="return /[a-zA-Z]/i.test(event.key)"
-														value="<?php echo htmlspecialchars($abv); ?>"/>
-													<label for="Courseabv">Course Abbreviation</label>
-												</div>
-
-												<div class="mb-3">
-													<label class="form-label">Course Color</label>
-
-													<div class="d-flex align-items-center gap-3 flex-wrap">
-														<input type="color"
-															class="form-control form-control-color"
-															name="CourseColor"
-															value="<?php echo htmlspecialchars($color); ?>"
-															style="width:60px;height:45px;"
-															required>
-
-														<input type="text"
-															class="form-control"
-															value="<?php echo htmlspecialchars($color); ?>"
-															readonly
-															style="max-width:120px;">
-
-														<span style="width:45px;height:45px;
-																	background-color:<?php echo htmlspecialchars($color); ?>;
-																	border-radius:6px;
-																	border:1px solid #ccc;">
-														</span>
-													</div>
-												</div>
-
-												<div class="d-flex flex-wrap gap-2 justify-content-end">
-													<button class="btn btn-danger btn-sm"
-															name="reset_all"
-															type="reset">
-														<i class="fa-regular fa-arrow-rotate-right"></i>
-														<span class="d-none d-sm-inline">Clear</span>
-													</button>
-
-													<button class="btn btn-primary btn-sm"
-															name="CSubmit"
-															value="CSubmit"
-															type="submit">
-														<i class="fa-solid fa-arrow-down-from-arc"></i>
-														<span class="d-none d-sm-inline">Save</span>
-													</button>
-
-													<button class="btn btn-success btn-sm"
-															name="UpdateCourse"
-															value="Edit"
-															type="submit">
-														<i class="fa-solid fa-pen-to-square"></i>
-														<span class="d-none d-sm-inline">Edit</span>
-													</button>
-												</div>
-											</form>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							<!-- Courses List -->
-							<div class="col-12 col-md-8">
-								<div class="card mb-3">
-									<div class="card-header">
-										<i class="fa-solid fa-table-list"></i> Courses List
 									</div>
 									<div class="card-body">
 										<div class="table-responsive">
@@ -206,16 +109,20 @@ if (isset($_GET['color'])) {
 																</span>
 															</td>
 															<td class="text-center">
-																<a href="?editid=<?php echo urlencode($row->id); ?>
-																	&edit=<?php echo urlencode($row->Cname); ?>
-																	&abv=<?php echo urlencode($row->abv); ?>
-																	&color=<?php echo urlencode($row->color); ?>"
-																	class="btn btn-sm text-white"
+																<button type="button"
+																	class="btn btn-sm text-white edit_course"
 																	style="background-color: <?php echo htmlspecialchars($row->color); ?>;"
-																	title="Edit course">
+																	title="Edit course"
+																	data-bs-toggle="modal"
+																	data-bs-target="#courseModal"
+																	data-id="<?php echo htmlspecialchars($row->id); ?>"
+																	data-name="<?php echo htmlspecialchars($row->Cname); ?>"
+																	data-abv="<?php echo htmlspecialchars($row->abv); ?>"
+																	data-color="<?php echo htmlspecialchars($row->color); ?>"
+																	onclick="openCourseModal(this)">
 
 																	<i class="fa-solid fa-pen-to-square"></i>
-																</a>
+																</button>
 															</td>
 
 														</tr>
@@ -231,6 +138,209 @@ if (isset($_GET['color'])) {
 								</div>
 							</div>              
 						</div>
+
+						<!-- Course Modal -->
+						<div class="modal fade" id="courseModal" data-bs-backdrop="static" data-bs-keyboard="false"
+							 tabindex="-1" aria-labelledby="courseModalLabel" aria-hidden="true">
+
+							<div class="modal-dialog modal-dialog-centered">
+								<form class="modal-content" method="post"
+									  style="border-radius:10px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+
+									<div class="modal-body" style="padding:30px;">
+
+										<!-- Icon + Title -->
+										<div style="text-align:center; margin-bottom:15px;">
+											<div style="font-size:44px; margin-bottom:8px;">📚</div>
+											<h3 style="margin:0; color:#0d6efd;" id="courseModalLabel">Add New Course</h3>
+										</div>
+
+										<p style="color:#555; font-size:14px; margin-bottom:15px; text-align:center;" id="courseModalDesc">
+											Add a new course to the system.
+										</p>
+
+										<input type="hidden" name="Cid" id="Cid" value="<?php echo htmlspecialchars($id); ?>">
+
+										<div style="margin-bottom:12px;">
+											<label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+												Course Fullname
+											</label>
+											<input class="form-control"
+												name="CourseN"
+												id="CourseN"
+												type="text"
+												autocomplete="off"
+												required
+												onkeydown="return /[a-zA-Z]/i.test(event.key)"
+												value="<?php echo htmlspecialchars($cname); ?>"
+												style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;"/>
+										</div>
+
+										<div style="margin-bottom:12px;">
+											<label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+												Course Abbreviation
+											</label>
+											<input class="form-control"
+												name="Courseabv"
+												id="Courseabv"
+												type="text"
+												autocomplete="off"
+												required
+												onkeydown="return /[a-zA-Z]/i.test(event.key)"
+												value="<?php echo htmlspecialchars($abv); ?>"
+												style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;"/>
+										</div>
+
+										<div style="margin-bottom:5px;">
+											<label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+												Course Color
+											</label>
+
+											<div class="d-flex align-items-center gap-3">
+												<input type="color"
+													id="CourseColor"
+													name="CourseColor"
+													value="<?php echo htmlspecialchars($color); ?>"
+													style="width:50px;height:42px; flex-shrink:0; border:1px solid #ccc; border-radius:6px; padding:2px;"
+													required>
+
+												<input type="text"
+													id="CourseColorText"
+													value="<?php echo htmlspecialchars($color); ?>"
+													readonly
+													style="flex:1; min-width:0; padding:8px; border:1px solid #ccc; border-radius:6px;">
+
+												<span id="CourseColorPreview" style="width:42px;height:42px; flex-shrink:0;
+															background-color:<?php echo htmlspecialchars($color); ?>;
+															border-radius:6px;
+															border:1px solid #ccc;">
+												</span>
+											</div>
+										</div>
+
+									</div>
+
+									<!-- Buttons -->
+									<div style="display:flex; gap:10px; justify-content:center; padding:0 30px 30px;">
+
+										<!-- Cancel -->
+										<button type="button"
+												class="btn"
+												data-bs-dismiss="modal"
+												style="
+													padding:10px 25px;
+													background:#ccc;
+													color:#333;
+													border:none;
+													border-radius:5px;
+													cursor:pointer;
+													font-size:14px;">
+											✖ Cancel
+										</button>
+
+										<!-- Clear (reset session, matches existing behavior) -->
+										<button type="submit"
+												name="reset_all"
+												class="btn"
+												style="
+													padding:10px 25px;
+													background:#dc3545;
+													color:white;
+													border:none;
+													border-radius:5px;
+													cursor:pointer;
+													font-size:14px;">
+											↺ Clear
+										</button>
+
+										<!-- Save (Add mode) -->
+										<button type="submit"
+												name="CSubmit"
+												value="CSubmit"
+												id="courseSaveBtn"
+												class="btn"
+												style="
+													padding:10px 25px;
+													background:#0d6efd;
+													color:white;
+													border:none;
+													border-radius:5px;
+													cursor:pointer;
+													font-size:14px;">
+											✔ Save Course
+										</button>
+
+										<!-- Update (Edit mode) -->
+										<button type="submit"
+												name="UpdateCourse"
+												value="Edit"
+												id="courseUpdateBtn"
+												class="btn"
+												style="
+													padding:10px 25px;
+													background:#198754;
+													color:white;
+													border:none;
+													border-radius:5px;
+													cursor:pointer;
+													font-size:14px;
+													display:none;">
+											✔ Update Course
+										</button>
+
+									</div>
+
+								</form>
+							</div>
+						</div>
+
+						<script>
+							// Toggle Save vs Update button, and modal title/description,
+							// depending on whether we're adding or editing a course.
+							function setCourseModalMode(isEdit) {
+								document.getElementById('courseSaveBtn').style.display = isEdit ? 'none' : 'inline-block';
+								document.getElementById('courseUpdateBtn').style.display = isEdit ? 'inline-block' : 'none';
+								document.getElementById('courseModalLabel').textContent = isEdit ? 'Edit Course' : 'Add New Course';
+								document.getElementById('courseModalDesc').textContent = isEdit
+									? 'Update this course\'s details.'
+									: 'Add a new course to the system.';
+							}
+
+							function resetCourseModal() {
+								document.getElementById('Cid').value = '';
+								document.getElementById('CourseN').value = '';
+								document.getElementById('Courseabv').value = '';
+								document.getElementById('CourseColor').value = '#6c757d';
+								document.getElementById('CourseColorText').value = '#6c757d';
+								document.getElementById('CourseColorPreview').style.backgroundColor = '#6c757d';
+								setCourseModalMode(false);
+							}
+
+							function openCourseModal(el) {
+								document.getElementById('Cid').value = el.dataset.id;
+								document.getElementById('CourseN').value = el.dataset.name;
+								document.getElementById('Courseabv').value = el.dataset.abv;
+								document.getElementById('CourseColor').value = el.dataset.color;
+								document.getElementById('CourseColorText').value = el.dataset.color;
+								document.getElementById('CourseColorPreview').style.backgroundColor = el.dataset.color;
+								setCourseModalMode(true);
+							}
+
+							// Keep the color swatch/text in sync when the color picker changes
+							document.getElementById('CourseColor').addEventListener('input', function () {
+								document.getElementById('CourseColorText').value = this.value;
+								document.getElementById('CourseColorPreview').style.backgroundColor = this.value;
+							});
+
+							<?php if (!empty($id)): ?>
+							// Page was loaded in edit mode via ?editid=... — open the modal pre-filled
+							document.addEventListener('DOMContentLoaded', function () {
+								setCourseModalMode(true);
+								var modal = new bootstrap.Modal(document.getElementById('courseModal'));
+								modal.show();
+							});
+							<?php endif; ?>
+						</script>
 					
 					</div>															
 					<?php include('pages/course.php');?>
