@@ -300,44 +300,84 @@ $activityLastUpdated = $activityUpdatedRow->last_updated
 
                             <!-- Change Password Modal -->
                             <div class="modal fade" id="changePasswordModal" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <form method="POST" action="pages/changePassword.php" class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Change Password</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <form method="POST" action="pages/changePassword.php" class="modal-content"
+                                        style="border-radius:10px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
 
-                                        <div class="modal-body">
+                                        <div class="modal-body" style="padding:30px;">
+
+                                            <!-- Icon + Title -->
+                                            <div style="text-align:center; margin-bottom:15px;">
+                                                <div style="font-size:44px; margin-bottom:8px;">🔑</div>
+                                                <h3 style="margin:0; color:#0d6efd;">Change Password</h3>
+                                            </div>
+
+                                            <p style="color:#555; font-size:14px; margin-bottom:15px; text-align:center;">
+                                                Set a new password for this account.
+                                            </p>
+
                                             <input type="hidden" name="user_id" id="passwordUserId">
 
-                                            <div class="mb-3">
-                                                <label class="form-label">New Password</label>
+                                            <div style="margin-bottom:5px; position:relative;">
+                                                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">
+                                                    New Password
+                                                </label>
 
-                                                <div class="position-relative">
-                                                    <input
-                                                        type="password"
-                                                        name="change_new_password"
-                                                        id="change_new_password"
-                                                        class="form-control pe-5"
-                                                        onkeydown="return /[a-zA-Z0-9]+/i.test(event.key)"
-                                                        required/>
+                                                <input
+                                                    type="password"
+                                                    name="change_new_password"
+                                                    id="change_new_password"
+                                                    onkeydown="return /[a-zA-Z0-9]+/i.test(event.key)"
+                                                    required
+                                                    style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;"/>
 
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2"
-                                                        onclick="toggleChangePassword(this)"
-                                                        tabindex="-1">
-                                                        <i class="fa-solid fa-eye"></i>
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm position-absolute end-0"
+                                                    style="top:38px;"
+                                                    onclick="toggleChangePassword(this)"
+                                                    tabindex="-1">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </button>
                                             </div>
+
+                                            <!-- Buttons -->
+                                            <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+
+                                                <!-- Cancel -->
+                                                <button type="button"
+                                                        class="btn"
+                                                        data-bs-dismiss="modal"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#ccc;
+                                                            color:#333;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✖ Cancel
+                                                </button>
+
+                                                <!-- Confirm -->
+                                                <button type="submit"
+                                                        name="changePassword"
+                                                        class="btn"
+                                                        style="
+                                                            padding:10px 25px;
+                                                            background:#0d6efd;
+                                                            color:white;
+                                                            border:none;
+                                                            border-radius:5px;
+                                                            cursor:pointer;
+                                                            font-size:14px;">
+                                                    ✔ Update Password
+                                                </button>
+
+                                            </div>
+
                                         </div>
 
-                                        <div class="modal-footer">
-                                            <button type="submit" name="changePassword" class="btn btn-primary">
-                                                Update Password
-                                            </button>
-                                        </div>
                                     </form>
                                 </div>
                             </div>
