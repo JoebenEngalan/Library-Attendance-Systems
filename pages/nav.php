@@ -33,10 +33,16 @@
                     <li><hr class="dropdown-divider"></li>
                     <?php endif; ?>
                     <li>
+                        <a class="dropdown-item text-primary" href="index.php" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-solid fa-house me-1"></i> Landing Page
+                        </a>
+                    </li>
+                    <li>
                         <a class="dropdown-item text-danger" href="pages/logout.php">
                             <i class="fas fa-sign-out-alt me-1"></i> Logout
                         </a>
                     </li>
+                    
                 </ul>
             </li>
 

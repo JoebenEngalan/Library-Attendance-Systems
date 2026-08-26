@@ -24,14 +24,8 @@
 
 				<?php if (isset($_SESSION['role']) && $_SESSION['role'] !== 'User'): ?>
 				
-				<div class="sb-sidenav-menu-heading">Controls</div>
+				<div class="sb-sidenav-menu-heading">Admin Controls</div>
 				
-				<a class="nav-link" href="courses.php">
-					<div class="sb-nav-link-icon ">
-						<i class="fa-duotone fa-solid fa-file-pen"></i>
-					</div>
-					Courses
-				</a>
 
 				<a class="nav-link" href="activitylog.php">
 					<div class="sb-nav-link-icon">
