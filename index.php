@@ -64,7 +64,7 @@ unset($_SESSION['message']);
                                         name="id_number"
                                         id="id_number"
                                         class="form-control form-control-lg text-left"
-                                        placeholder="Enter or Scan Student ID"
+                                        placeholder="Enter Student ID"
                                         autocomplete="off"
                                         onkeydown="return validateIdInput(event)"
                                         required
