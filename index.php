@@ -30,6 +30,23 @@ unset($_SESSION['message']);
 <!DOCTYPE html>
 <html lang="en">
 <?php include('pages/indexhead.php');?>
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    .masthead {
+        flex: 1 0 auto;         /* grow to fill remaining viewport height */
+        display: flex;
+        align-items: center;    /* keeps your content vertically centered */
+    }
+    footer {
+        flex-shrink: 0;         /* footer only takes what it needs */
+    }
+</style>
 
 <body>
     <!-- Navigation -->
@@ -43,7 +60,6 @@ unset($_SESSION['message']);
 
                     <div class="text-center text-white">
                         
-
                         <?php if ($message): ?>
                             <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
                                 <?php echo $message; ?>
@@ -57,19 +73,17 @@ unset($_SESSION['message']);
                             <div class="row g-2 justify-content-center">
 
                                 <!-- ID Input -->
-                                <!-- ID Input -->
                                 <div class="col-12 col-sm-8">
                                     <input
                                         type="text"
                                         name="id_number"
                                         id="id_number"
                                         class="form-control form-control-lg text-left"
-                                        placeholder="Enter Student ID"
+                                        placeholder="Enter Student ID Number"
                                         autocomplete="off"
                                         onkeydown="return validateIdInput(event)"
                                         required
-                                        autofocus>
-                                    
+                                        autofocus>                                   
                                 </div>
 
                                 <!-- Submit Button -->
@@ -83,7 +97,7 @@ unset($_SESSION['message']);
                                     </button>
                                 </div>
                                 <div id="id_number_error" class="alert alert-light mt-4 fw-bold fs-3 d-none" role="alert">
-                                    No special characters or spaces allowed. Letters and numbers only.
+                                    No " - " character or spaces allowed. Letters & Numbers only.
                                 </div>
                             </div>
                         </form>
@@ -239,7 +253,7 @@ unset($_SESSION['message']);
         const isValid = /^[a-zA-Z0-9]$/.test(event.key);
 
         // Allow control keys (Backspace, Delete, Tab, Arrow keys, etc.)
-        const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'];
+        const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter','F5'];
 
         if (allowedKeys.includes(event.key)) {
             errorMsg.classList.add('d-none');
