@@ -405,6 +405,137 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                         </div>
 
+                        <?php
+                            $currentMonth = date('n');
+                            $currentYear = date('Y');
+                            $monthNames = [
+                                1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                                5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+                            ];
+                        ?>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <i class="fa-duotone fa-solid fa-trophy me-1"></i>
+                                        Overall Top 3 Students (<span id="overallTopLabel"></span>)
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-2 flex-nowrap">
+                                        <!-- Month Filter -->
+                                        <select id="overallTopMonth" class="form-select form-select-sm" style="min-width: 130px;">
+                                            <option value="all">All Months</option>
+                                            <?php
+                                            foreach ($monthNames as $num => $name) {
+                                                $selected = ($num == $currentMonth) ? 'selected' : '';
+                                                echo "<option value='$num' $selected>$name</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <!-- Year Filter -->
+                                        <select id="overallTopYear" class="form-select form-select-sm" style="min-width: 90px;">
+                                            <?php
+                                            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                                                $selected = ($y == $currentYear) ? 'selected' : '';
+                                                echo "<option value='$y' $selected>$y</option>";
+                                            }
+                                            ?>
+                                        </select>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-primary d-flex align-items-center gap-1 text-nowrap"
+                                            onclick="loadOverallTopTable()"
+                                        >
+                                            <i class="fa-duotone fa-light fa-filter"></i>
+                                            <span class="d-none d-sm-inline">Filter</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="overallTopTable" name="overallTopTable" class="table table-striped table-hover align-middle w-100">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Rank</th>
+                                                <th class="text-end">ID Number</th>
+                                                <th class="text-center">Full Name</th>
+                                                <th>Course</th>
+                                                <th>Year Level</th>
+                                                <th>Total Visits</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Populated by DataTables via AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card-footer small text-muted">
+                                <i class="fa-regular fa-clock me-1"></i>
+                                Updated: <?php echo date("F d, Y h:i A"); ?>
+                            </div>
+                        </div>
+
+                        <script>
+                        let overallTopDataTable = null;
+
+                        function loadOverallTopTable() {
+                            const month = document.getElementById('overallTopMonth').value;
+                            const year = document.getElementById('overallTopYear').value;
+
+                            const label = (month === 'all')
+                                ? `All Months ${year}`
+                                : `${topStudentsMonthNames[month]} ${year}`;
+                            document.getElementById('overallTopLabel').textContent = label;
+
+                            if (overallTopDataTable) {
+                                overallTopDataTable.ajax.url(
+                                    `pages/top_students_overall.php?month=${month}&year=${year}`
+                                ).load();
+                                return;
+                            }
+
+                            overallTopDataTable = $('#overallTopTable').DataTable({
+                                ajax: {
+                                    url: `pages/top_students_overall.php?month=${month}&year=${year}`,
+                                    dataSrc: 'data'
+                                },
+                                columns: [
+                                    {
+                                        data: 'overall_rank',
+                                        render: function (data) {
+                                            const rank = parseInt(data, 10);
+                                            if (rank === 1) return '🥇 1st place';
+                                            if (rank === 2) return '🥈 2nd place';
+                                            if (rank === 3) return '🥉 3rd place';
+                                            return data;
+                                        }
+                                    },
+                                    { data: 'id_number', className: 'text-end' },
+                                    { data: 'fullname', className: 'text-center' },
+                                    { data: 'course' },
+                                    { data: 'yearlevel' },
+                                    { data: 'total_visits' }
+                                ],
+                                order: [[0, 'asc']],
+                                pageLength: 25,
+                                lengthChange: false,
+                                searching: false,
+                                paging: false,
+                                info: false
+                            });
+                        }
+
+                        document.addEventListener('DOMContentLoaded', loadOverallTopTable);
+                        </script>
+
                         <div class="card mb-4">
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -512,7 +643,16 @@ if (!isset($_SESSION['user_id'])) {
                                 },
                                 columns: [
                                     { data: 'course' },
-                                    { data: 'rank_in_course' },
+                                    {
+                                        data: 'rank_in_course',
+                                        render: function (data) {
+                                            const rank = parseInt(data, 10);
+                                            if (rank === 1) return '🥇 1st place';
+                                            if (rank === 2) return '🥈 2nd place';
+                                            if (rank === 3) return '🥉 3rd place';
+                                            return data;
+                                        }
+                                    },
                                     { data: 'id_number', className: 'text-end' },
                                     { data: 'fullname', className: 'text-center' },
                                     { data: 'yearlevel' },
