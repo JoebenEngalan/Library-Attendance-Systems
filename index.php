@@ -18,13 +18,44 @@ $stmtAuto->execute();
 
 // Step 1: If form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
-    $_SESSION['id_number'] = $_POST['id_number']; // save temporarily
-    header("Location: pages/attend.php");
-    exit();
+    // Re-check the setting server-side so submissions can't slip through
+    // if the form is disabled while this request was already in flight.
+    $formStillEnabled = true;
+    try {
+        $chk = $dbh->query("SELECT setting_value FROM system_settings WHERE setting_key = 'attendance_form_disabled'");
+        $val = $chk->fetchColumn();
+        $formStillEnabled = !($val === '1');
+    } catch (Exception $e) {
+        $formStillEnabled = true;
+    }
+
+    if ($formStillEnabled) {
+        $_SESSION['id_number'] = $_POST['id_number']; // save temporarily
+        header("Location: pages/attend.php");
+        exit();
+    }
 }
 // Step 2: Display message from attend.php
 $message = isset($_SESSION['message']) ? $_SESSION['message'] : '';
 unset($_SESSION['message']);
+
+// Check if the attendance form has been disabled via Settings
+$attendanceFormDisabled = false;
+$attendanceFormMessage = '';
+try {
+    $sqlSettings = "SELECT setting_key, setting_value FROM system_settings
+                     WHERE setting_key IN ('attendance_form_disabled', 'attendance_form_message')";
+    $stmtSettings = $dbh->query($sqlSettings);
+    $settings = [];
+    foreach ($stmtSettings->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $settings[$row['setting_key']] = $row['setting_value'];
+    }
+    $attendanceFormDisabled = isset($settings['attendance_form_disabled']) && $settings['attendance_form_disabled'] === '1';
+    $attendanceFormMessage  = $settings['attendance_form_message'] ?? 'Attendance logging is temporarily unavailable. Please see the librarian at the desk.';
+} catch (Exception $e) {
+    // system_settings table not created yet — treat form as enabled
+    $attendanceFormDisabled = false;
+}
 ?>
 
 <!DOCTYPE html>
@@ -69,6 +100,14 @@ unset($_SESSION['message']);
                         <h1 class="mb-1" id="clock"></h1>
                         <h2 class="mb-4" id="date"></h2>
 
+                        <?php if ($attendanceFormDisabled): ?>
+
+                            <div class="alert alert-light mt-4 fw-bold fs-4" role="alert">
+                                <?php echo nl2br(htmlspecialchars($attendanceFormMessage)); ?>
+                            </div>
+
+                        <?php else: ?>
+
                         <form method="POST" id="attendanceForm">
                             <div class="row g-2 justify-content-center">
 
@@ -101,6 +140,8 @@ unset($_SESSION['message']);
                                 </div>
                             </div>
                         </form>
+
+                        <?php endif; ?>
                         
                     </div>
 
@@ -245,6 +286,25 @@ unset($_SESSION['message']);
             if (input) { input.value = ''; input.focus(); }
         });
     // optional: enter key submits naturally since it's a form
+    </script>
+
+    <script>
+    // Poll the attendance-form status so the kiosk auto-refreshes the
+    // moment an admin toggles "Disable the attendance form" in Settings.
+    (function () {
+        var initialDisabled = <?php echo $attendanceFormDisabled ? 'true' : 'false'; ?>;
+
+        setInterval(function () {
+            fetch('pages/attendance_status.php', { cache: 'no-store' })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.disabled !== initialDisabled) {
+                        window.location.reload();
+                    }
+                })
+                .catch(function () { /* ignore transient network errors */ });
+        }, 5000); // check every 5 seconds
+    })();
     </script>
 
     <script>

@@ -19,6 +19,51 @@ if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowedRoles, tru
 $message = "";
 $messageType = "";
 
+// Ensure a simple key/value settings table exists
+$dbh->exec("CREATE TABLE IF NOT EXISTS system_settings (
+    setting_key VARCHAR(100) NOT NULL PRIMARY KEY,
+    setting_value TEXT
+)");
+
+// Save Attendance Form toggle + message
+if (isset($_POST['save_attendance_form_settings'])) {
+
+    $attendanceFormDisabled = isset($_POST['attendance_form_disabled']) ? '1' : '0';
+    $attendanceFormMessage  = trim($_POST['attendance_form_message']);
+
+    $sqlUpsert = "INSERT INTO system_settings (setting_key, setting_value)
+                  VALUES (:k, :v)
+                  ON DUPLICATE KEY UPDATE setting_value = :v2";
+
+    $stmt = $dbh->prepare($sqlUpsert);
+    $stmt->execute([
+        ':k'  => 'attendance_form_disabled',
+        ':v'  => $attendanceFormDisabled,
+        ':v2' => $attendanceFormDisabled
+    ]);
+
+    $stmt = $dbh->prepare($sqlUpsert);
+    $stmt->execute([
+        ':k'  => 'attendance_form_message',
+        ':v'  => $attendanceFormMessage,
+        ':v2' => $attendanceFormMessage
+    ]);
+
+    $message = "Attendance form settings saved.";
+    $messageType = "success";
+}
+
+// Load current Attendance Form settings for the form below
+$sqlLoad = "SELECT setting_key, setting_value FROM system_settings
+            WHERE setting_key IN ('attendance_form_disabled', 'attendance_form_message')";
+$stmtLoad = $dbh->query($sqlLoad);
+$currentSettings = [];
+foreach ($stmtLoad->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $currentSettings[$row['setting_key']] = $row['setting_value'];
+}
+$attendanceFormDisabled = isset($currentSettings['attendance_form_disabled']) && $currentSettings['attendance_form_disabled'] === '1';
+$attendanceFormMessage  = $currentSettings['attendance_form_message'] ?? 'Attendance logging is temporarily unavailable. Please see the librarian at the desk.';
+
 // Course edit prefill (from ?editid=... link, same pattern as courses.php)
 $Cid = isset($_GET['editid']) ? $_GET['editid'] : '';
 $Cname = isset($_GET['edit']) ? $_GET['edit'] : '';
@@ -352,6 +397,60 @@ if (isset($_SESSION['message'])) {
                             <li class="breadcrumb-item"><a href="admin.php" style="color: #d63384" >Dashboard</a></li>
                             <li class="breadcrumb-item active">Settings</li>
                         </ol>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fa-solid fa-ban"></i>
+                                Attendance Form (Kiosk Page)
+                            </div>
+                            <div class="card-body">
+
+                                <?php if (!empty($message)) { ?>
+                                    <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
+                                        <?php echo htmlspecialchars($message); ?>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                <?php } ?>
+
+                                <form method="POST">
+                                    <div class="form-check form-switch mb-3">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            role="switch"
+                                            id="attendance_form_disabled"
+                                            name="attendance_form_disabled"
+                                            <?php echo $attendanceFormDisabled ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="attendance_form_disabled">
+                                            Disable the attendance form on the kiosk (index) page
+                                        </label>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="attendance_form_message" class="form-label">
+                                            Message to show instead of the form
+                                        </label>
+                                        <textarea
+                                            class="form-control"
+                                            id="attendance_form_message"
+                                            name="attendance_form_message"
+                                            rows="2"><?php echo htmlspecialchars($attendanceFormMessage); ?></textarea>
+                                        <div class="form-text">
+                                            Shown to students on the kiosk page only while the form above is disabled.
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        name="save_attendance_form_settings"
+                                        class="btn text-white"
+                                        style="background-color:#d63384;">
+                                        Save
+                                    </button>
+                                </form>
+
+                            </div>
+                        </div>
+
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fa-solid fa-clock"></i>
