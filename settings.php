@@ -53,9 +53,29 @@ if (isset($_POST['save_attendance_form_settings'])) {
     $messageType = "success";
 }
 
-// Load current Attendance Form settings for the form below
+// Save Kiosk Announcement (shown above the form while it stays enabled)
+if (isset($_POST['save_attendance_announcement'])) {
+
+    $attendanceAnnouncement = trim($_POST['attendance_announcement']);
+
+    $sqlUpsert = "INSERT INTO system_settings (setting_key, setting_value)
+                  VALUES (:k, :v)
+                  ON DUPLICATE KEY UPDATE setting_value = :v2";
+
+    $stmt = $dbh->prepare($sqlUpsert);
+    $stmt->execute([
+        ':k'  => 'attendance_announcement',
+        ':v'  => $attendanceAnnouncement,
+        ':v2' => $attendanceAnnouncement
+    ]);
+
+    $message = "Kiosk announcement saved.";
+    $messageType = "success";
+}
+
+// Load current Attendance Form settings for the forms below
 $sqlLoad = "SELECT setting_key, setting_value FROM system_settings
-            WHERE setting_key IN ('attendance_form_disabled', 'attendance_form_message')";
+            WHERE setting_key IN ('attendance_form_disabled', 'attendance_form_message', 'attendance_announcement')";
 $stmtLoad = $dbh->query($sqlLoad);
 $currentSettings = [];
 foreach ($stmtLoad->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -63,6 +83,7 @@ foreach ($stmtLoad->fetchAll(PDO::FETCH_ASSOC) as $row) {
 }
 $attendanceFormDisabled = isset($currentSettings['attendance_form_disabled']) && $currentSettings['attendance_form_disabled'] === '1';
 $attendanceFormMessage  = $currentSettings['attendance_form_message'] ?? 'Attendance logging is temporarily unavailable. Please see the librarian at the desk.';
+$attendanceAnnouncement = $currentSettings['attendance_announcement'] ?? '';
 
 // Course edit prefill (from ?editid=... link, same pattern as courses.php)
 $Cid = isset($_GET['editid']) ? $_GET['editid'] : '';
@@ -397,19 +418,56 @@ if (isset($_SESSION['message'])) {
                             <li class="breadcrumb-item"><a href="admin.php" style="color: #d63384" >Dashboard</a></li>
                             <li class="breadcrumb-item active">Settings</li>
                         </ol>
+
+                        <?php if (!empty($message)) { ?>
+                            <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
+                                <?php echo htmlspecialchars($message); ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php } ?>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fa-solid fa-bullhorn"></i>
+                                Kiosk Announcement
+                            </div>
+                            <div class="card-body">
+
+                                <form method="POST">
+                                    <div class="mb-3">
+                                        <label for="attendance_announcement" class="form-label">
+                                            Announcement message
+                                        </label>
+                                        <textarea
+                                            class="form-control"
+                                            id="attendance_announcement"
+                                            name="attendance_announcement"
+                                            rows="2"
+                                            placeholder="e.g. Library closes early today at 4:00 PM."><?php echo htmlspecialchars($attendanceAnnouncement); ?></textarea>
+                                        <div class="form-text">
+                                            Shown on the kiosk page above the ID form. Stays visible whether the
+                                            attendance form below is enabled or disabled. Leave blank to hide it.
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        name="save_attendance_announcement"
+                                        class="btn text-white"
+                                        style="background-color:#d63384;">
+                                        Save Announcement
+                                    </button>
+                                </form>
+
+                            </div>
+                        </div>
+
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fa-solid fa-ban"></i>
                                 Attendance Form (Kiosk Page)
                             </div>
                             <div class="card-body">
-
-                                <?php if (!empty($message)) { ?>
-                                    <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show">
-                                        <?php echo htmlspecialchars($message); ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                <?php } ?>
 
                                 <form method="POST">
                                     <div class="form-check form-switch mb-3">

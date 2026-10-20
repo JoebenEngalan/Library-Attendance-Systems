@@ -42,9 +42,10 @@ unset($_SESSION['message']);
 // Check if the attendance form has been disabled via Settings
 $attendanceFormDisabled = false;
 $attendanceFormMessage = '';
+$attendanceAnnouncement = '';
 try {
     $sqlSettings = "SELECT setting_key, setting_value FROM system_settings
-                     WHERE setting_key IN ('attendance_form_disabled', 'attendance_form_message')";
+                     WHERE setting_key IN ('attendance_form_disabled', 'attendance_form_message', 'attendance_announcement')";
     $stmtSettings = $dbh->query($sqlSettings);
     $settings = [];
     foreach ($stmtSettings->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -52,9 +53,11 @@ try {
     }
     $attendanceFormDisabled = isset($settings['attendance_form_disabled']) && $settings['attendance_form_disabled'] === '1';
     $attendanceFormMessage  = $settings['attendance_form_message'] ?? 'Attendance logging is temporarily unavailable. Please see the librarian at the desk.';
+    $attendanceAnnouncement = $settings['attendance_announcement'] ?? '';
 } catch (Exception $e) {
-    // system_settings table not created yet — treat form as enabled
+    // system_settings table not created yet — treat form as enabled, no announcement
     $attendanceFormDisabled = false;
+    $attendanceAnnouncement = '';
 }
 ?>
 
@@ -94,6 +97,12 @@ try {
                         <?php if ($message): ?>
                             <div class="alert alert-light mt-4 fw-bold fs-3" role="alert">
                                 <?php echo $message; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($attendanceAnnouncement)): ?>
+                            <div class="alert alert-warning fw-bold mb-3" role="alert">
+                                <?php echo nl2br(htmlspecialchars($attendanceAnnouncement)); ?>
                             </div>
                         <?php endif; ?>
                         
@@ -293,12 +302,13 @@ try {
     // moment an admin toggles "Disable the attendance form" in Settings.
     (function () {
         var initialDisabled = <?php echo $attendanceFormDisabled ? 'true' : 'false'; ?>;
+        var initialAnnouncement = <?php echo json_encode($attendanceAnnouncement); ?>;
 
         setInterval(function () {
             fetch('pages/attendance_status.php', { cache: 'no-store' })
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
-                    if (data.disabled !== initialDisabled) {
+                    if (data.disabled !== initialDisabled || data.announcement !== initialAnnouncement) {
                         window.location.reload();
                     }
                 })
