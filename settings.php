@@ -19,6 +19,16 @@ if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowedRoles, tru
 $message = "";
 $messageType = "";
 
+// Pull in a one-time message left by the Attendance Form / Kiosk
+// Announcement handlers below (set via their own session key so they
+// never collide with the raw $_SESSION['message'] used by rollover /
+// backup / reset further down this file).
+if (isset($_SESSION['settings_message'])) {
+    $message = $_SESSION['settings_message'];
+    $messageType = $_SESSION['settings_message_type'] ?? 'success';
+    unset($_SESSION['settings_message'], $_SESSION['settings_message_type']);
+}
+
 // Ensure a simple key/value settings table exists
 $dbh->exec("CREATE TABLE IF NOT EXISTS system_settings (
     setting_key VARCHAR(100) NOT NULL PRIMARY KEY,
@@ -49,8 +59,10 @@ if (isset($_POST['save_attendance_form_settings'])) {
         ':v2' => $attendanceFormMessage
     ]);
 
-    $message = "Attendance form settings saved.";
-    $messageType = "success";
+    $_SESSION['settings_message'] = "Attendance form settings saved.";
+    $_SESSION['settings_message_type'] = "success";
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
 }
 
 // Save Kiosk Announcement (shown above the form while it stays enabled)
@@ -69,8 +81,10 @@ if (isset($_POST['save_attendance_announcement'])) {
         ':v2' => $attendanceAnnouncement
     ]);
 
-    $message = "Kiosk announcement saved.";
-    $messageType = "success";
+    $_SESSION['settings_message'] = "Kiosk announcement saved.";
+    $_SESSION['settings_message_type'] = "success";
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
 }
 
 // Load current Attendance Form settings for the forms below
