@@ -13,6 +13,46 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Quick action: append "Ready for approval" to a student's remarks
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['markReady'])) {
+    $readyId = $_POST['id'];
+
+    $sqlGet = "SELECT remarks FROM studtbl WHERE id = :id";
+    $stmtGet = $dbh->prepare($sqlGet);
+    $stmtGet->bindParam(':id', $readyId, PDO::PARAM_INT);
+    $stmtGet->execute();
+    $currentRemarks = trim((string) $stmtGet->fetchColumn());
+
+    $tag = "Ready for approval";
+    if ($currentRemarks === '') {
+        $newRemarks = $tag;
+    } elseif (stripos($currentRemarks, $tag) !== false) {
+        $newRemarks = $currentRemarks; // already tagged, avoid duplicating
+    } else {
+        $newRemarks = $currentRemarks . " | " . $tag;
+    }
+
+    $sqlUpdate = "UPDATE studtbl SET remarks = :remarks WHERE id = :id";
+    $stmtUpdate = $dbh->prepare($sqlUpdate);
+    $stmtUpdate->bindParam(':remarks', $newRemarks, PDO::PARAM_STR);
+    $stmtUpdate->bindParam(':id', $readyId, PDO::PARAM_INT);
+    $stmtUpdate->execute();
+
+    header("Location: records.php");
+    exit;
+}
+
+// Bulk action: clear remarks for ALL students (e.g. once clearance is signed)
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['clearAllRemarks'])) {
+    $sqlClear = "UPDATE studtbl SET remarks = NULL";
+    $stmtClear = $dbh->prepare($sqlClear);
+    $stmtClear->execute();
+
+    $_SESSION['message'] = "Remarks cleared for all students.";
+    header("Location: records.php");
+    exit;
+}
+
 // Include updateStud.php to handle student record updates
 include 'pages/updateStud.php';
 ?>
@@ -61,6 +101,19 @@ include 'pages/updateStud.php';
                                         <i class="fa-duotone fa-regular fa-user-plus"></i>
                                         <span class="d-none d-sm-inline">Add Student Profile</span>
                                     </button>
+
+                                    <!-- Clear All Remarks Button -->
+                                    <form method="POST" class="d-flex"
+                                        onsubmit="return confirm('Clear remarks for ALL students? Use this once clearance has been signed. This cannot be undone.');">
+                                        <button type="submit" name="clearAllRemarks"
+                                            class="btn btn-outline-danger btn-lg d-flex align-items-center justify-content-center gap-2 w-100"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="bottom"
+                                            title="Clear remarks for all students once clearance is signed">
+                                            <i class="fa-duotone fa-regular fa-eraser"></i>
+                                            <span class="d-none d-sm-inline">Clear All Remarks</span>
+                                        </button>
+                                    </form>
 
                                 </div>
 
@@ -127,21 +180,34 @@ include 'pages/updateStud.php';
 
                                                     <!-- ACTION -->
                                                     <td>
-                                                        <a href="#"
-                                                        class="edit_data4 btn btn-sm btn-secondary"
-                                                        data-id="<?php echo $row->id; ?>"
-                                                        data-studid="<?php echo $row->studID; ?>"
-                                                        data-lname="<?php echo $row->Lname; ?>"
-                                                        data-fname="<?php echo $row->Fname; ?>"
-                                                        data-course="<?php echo $row->Course; ?>"
-                                                        data-year="<?php echo $row->YearLevel; ?>"
-                                                        data-remarks="<?php echo $row->remarks; ?>"
-                                                        data-status="<?php echo $row->status; ?>"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#EditSudent">
-                                                            <i class="fa-duotone fa-solid fa-pen-to-square"></i>
-                                                            <span class="d-none d-sm-inline"> Edit</span>
-                                                        </a>
+                                                        <div class="d-flex gap-1 justify-content-center">
+                                                            <a href="#"
+                                                            class="edit_data4 btn btn-sm btn-secondary"
+                                                            data-id="<?php echo $row->id; ?>"
+                                                            data-studid="<?php echo $row->studID; ?>"
+                                                            data-lname="<?php echo $row->Lname; ?>"
+                                                            data-fname="<?php echo $row->Fname; ?>"
+                                                            data-course="<?php echo $row->Course; ?>"
+                                                            data-year="<?php echo $row->YearLevel; ?>"
+                                                            data-remarks="<?php echo $row->remarks; ?>"
+                                                            data-status="<?php echo $row->status; ?>"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#EditSudent">
+                                                                <i class="fa-duotone fa-solid fa-pen-to-square"></i>
+                                                                <span class="d-none d-sm-inline"> Edit</span>
+                                                            </a>
+
+                                                            <form method="POST" class="d-inline"
+                                                                onsubmit="return confirm('Mark this record as Ready for approval?');">
+                                                                <input type="hidden" name="id" value="<?php echo $row->id; ?>">
+                                                                <button type="submit" name="markReady"
+                                                                    class="btn btn-sm btn-success"
+                                                                    title="Add 'Ready for approval' to remarks">
+                                                                    <i class="fa-duotone fa-solid fa-circle-check"></i>
+                                                                    <span class="d-none d-sm-inline"> Ready</span>
+                                                                </button>
+                                                            </form>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             <?php
