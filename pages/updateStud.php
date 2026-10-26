@@ -3,7 +3,7 @@ session_start();
 error_reporting(0);
 include "includes/config.php"; // adjust path if needed
 
-if (isset($_POST['updateStudent'])) {
+if (isset($_POST['updateStudent']) || isset($_POST['updateStudentReady'])) {
 
     // REQUIRED FIELDS
     $id        = (int) $_POST['id'];
@@ -19,6 +19,17 @@ if (isset($_POST['updateStudent'])) {
     // NEW FIELDS
     $remarks   = trim($_POST['remarks'] ?? null);
     $status    = $_POST['status'] ?? 'ACTIVE';
+
+    // "Save & Submit for Approval" button: tag remarks without wiping
+    // whatever was already typed in the textarea.
+    if (isset($_POST['updateStudentReady'])) {
+        $tag = 'Ready for approval';
+        if ($remarks === '') {
+            $remarks = $tag;
+        } elseif (stripos($remarks, $tag) === false) {
+            $remarks = $remarks . " | " . $tag;
+        }
+    }
 
     // ALLOWED STATUS VALUES (SECURITY)
     $allowedStatus = ['ACTIVE', 'SUSPENDED', 'INACTIVE', 'GRADUATED'];

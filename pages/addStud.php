@@ -11,8 +11,10 @@ $today = date("Y-m-d");
 $current_time = date("H:i:s");
 $current_time_12 = date("h:i A");
 //echo "Current Date: $today, Current Time: $current_time_12";
-// Check if form is submitted
-if (isset($_POST['Add'])) {
+// Check if form is submitted (either the normal Save, or Save & Mark Ready)
+if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
+
+    $remarks = isset($_POST['AddReady']) ? 'Ready for approval' : null;
 
     $studid = $_POST['studid'];
 
@@ -43,14 +45,15 @@ if (isset($_POST['Add'])) {
             } else {
 
                 // Insert student
-                $sql = "INSERT INTO studtbl (studID, Lname, Fname, Course, YearLevel)
-                        VALUES (:studid, :inputLName, :inputFName, :course, :yearlevel)";
+                $sql = "INSERT INTO studtbl (studID, Lname, Fname, Course, YearLevel, remarks)
+                        VALUES (:studid, :inputLName, :inputFName, :course, :yearlevel, :remarks)";
                 $query = $dbh->prepare($sql);
                 $query->bindParam(':studid', $studid, PDO::PARAM_STR);
                 $query->bindParam(':inputLName', $lname, PDO::PARAM_STR);
                 $query->bindParam(':inputFName', $fname, PDO::PARAM_STR);
                 $query->bindParam(':course', $courses, PDO::PARAM_STR);
                 $query->bindParam(':yearlevel', $yearlevel, PDO::PARAM_STR);
+                $query->bindParam(':remarks', $remarks, PDO::PARAM_STR);
                 $query->execute();
 
                 /* ✅ Attendance merge using defined time */
@@ -209,13 +212,16 @@ if (isset($_POST['Add'])) {
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="modal-footer border-0 px-0 pb-0">
-                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                    <div class="modal-footer border-0 px-0 pb-0 flex-nowrap gap-2">
+                        <button type="button" class="btn btn-light border text-nowrap" data-bs-dismiss="modal">
                             <i class="fa-duotone fa-solid fa-xmark me-1"></i> Close
                         </button>
-                        <button class="btn btn-primary d-flex align-items-center gap-2" type="submit" name="Add" value="Add"
+                        <button class="btn btn-primary d-flex align-items-center gap-2 text-nowrap" type="submit" name="Add" value="Add"
                                 style="background: linear-gradient(135deg, #22b573 0%, #16a085 100%); border:none;">
                             <i class="fa-duotone fa-solid fa-floppy-disk"></i> Save Profile
+                        </button>
+                        <button class="btn btn-success d-flex align-items-center gap-2 text-nowrap" type="submit" name="AddReady" value="AddReady">
+                            <i class="fa-duotone fa-solid fa-circle-check"></i> Save & Mark Ready
                         </button>
                     </div>
                 </form>

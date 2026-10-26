@@ -361,13 +361,16 @@ include 'pages/updateStud.php';
                                                 </div>
                                             </div>
 
-                                            <div class="modal-footer border-0 px-0 pb-0">
-                                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                                            <div class="modal-footer border-0 px-0 pb-0 flex-nowrap gap-2">
+                                                <button type="button" class="btn btn-light border text-nowrap" data-bs-dismiss="modal">
                                                     <i class="fa-duotone fa-solid fa-xmark me-1"></i> Close
                                                 </button>
-                                                <button type="submit" name="updateStudent" class="btn btn-primary d-flex align-items-center gap-2"
+                                                <button type="submit" name="updateStudent" class="btn btn-primary d-flex align-items-center gap-2 text-nowrap"
                                                         style="background: linear-gradient(135deg, #5678f5 0%, #7c5cf0 100%); border:none;">
                                                     <i class="fa-duotone fa-solid fa-floppy-disk"></i> Save Changes
+                                                </button>
+                                                <button type="submit" name="updateStudentReady" class="btn btn-success d-flex align-items-center gap-2 text-nowrap">
+                                                    <i class="fa-duotone fa-solid fa-circle-check"></i> Save &amp; Submit for Approval
                                                 </button>
                                             </div>
 
