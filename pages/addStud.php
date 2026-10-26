@@ -218,7 +218,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
                         </button>
                         <button class="btn btn-primary d-flex align-items-center gap-2 text-nowrap" type="submit" name="Add" value="Add"
                                 style="background: linear-gradient(135deg, #22b573 0%, #16a085 100%); border:none;">
-                            <i class="fa-duotone fa-solid fa-floppy-disk"></i> Save Profile
+                            <i class="fa-duotone fa-solid fa-floppy-disk"></i> Save
                         </button>
                         <button class="btn btn-success d-flex align-items-center gap-2 text-nowrap" type="submit" name="AddReady" value="AddReady">
                             <i class="fa-duotone fa-solid fa-circle-check"></i> Save & Mark Ready
