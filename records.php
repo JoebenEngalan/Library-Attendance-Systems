@@ -119,7 +119,7 @@ include 'pages/updateStud.php';
 
                                 <!-- Student Records Table -->
                                 <div class="table-responsive">
-                                    <table id="recordTable" name="recordTable" class="table table-striped table-hover text-center mb-0">
+                                    <table id="recordTable" class="table table-striped table-hover text-center mb-0" style="width:100%">
                                         <thead class="table-dark">
                                             <tr>
                                                 <th class="text-center">Student ID</th>
@@ -133,91 +133,8 @@ include 'pages/updateStud.php';
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
-                                            <tbody>
-                                            <!-- Fetch student records from database and display in table -->
-                                            <?php
-                                            $sql = "SELECT  id, studID,Lname,Fname, Course,YearLevel, remarks,status,updated_at 
-                                                    FROM studtbl";
-                                            $query = $dbh->prepare($sql);
-                                            $query->execute();
-                                            $results = $query->fetchAll(PDO::FETCH_OBJ);
-
-                                            if ($query->rowCount() > 0) {
-                                                foreach ($results as $row) {
-                                            ?>
-                                                <tr>
-                                                    <td><?php echo htmlentities($row->studID); ?></td>
-                                                    <td class="text-start"><?php echo htmlentities($row->Lname); ?></td>
-                                                    <td class="text-start"><?php echo htmlentities($row->Fname); ?></td>
-                                                    <td><?php echo htmlentities($row->YearLevel); ?></td>
-                                                    <td><?php echo htmlentities($row->Course); ?></td>
-
-                                                    <!-- STATUS (Badge Style) -->
-                                                    <td>
-                                                        <?php
-                                                        $badge = match($row->status) {
-                                                            'ACTIVE'     => 'success',
-                                                            'SUSPENDED'  => 'danger',
-                                                            'INACTIVE'   => 'secondary',
-                                                            'GRADUATED'  => 'primary',
-                                                            default      => 'dark'
-                                                        };
-                                                        ?>
-                                                        <span class="badge bg-<?php echo $badge; ?>">
-                                                            <?php echo htmlentities($row->status); ?>
-                                                        </span>
-                                                    </td>
-
-                                                    <!-- UPDATED AT -->
-                                                    <td>
-                                                        <?php echo $row->updated_at 
-                                                            ? date("M d, Y h:i A", strtotime($row->updated_at)) 
-                                                            : '-'; ?>
-                                                    </td>
-
-                                                    <!-- REMARKS -->
-                                                    <td><?php echo htmlentities($row->remarks ?? '-'); ?></td>
-
-                                                    <!-- ACTION -->
-                                                    <td>
-                                                        <div class="d-flex gap-1 justify-content-center">
-                                                            <a href="#"
-                                                            class="edit_data4 btn btn-sm btn-secondary"
-                                                            data-id="<?php echo $row->id; ?>"
-                                                            data-studid="<?php echo $row->studID; ?>"
-                                                            data-lname="<?php echo $row->Lname; ?>"
-                                                            data-fname="<?php echo $row->Fname; ?>"
-                                                            data-course="<?php echo $row->Course; ?>"
-                                                            data-year="<?php echo $row->YearLevel; ?>"
-                                                            data-remarks="<?php echo $row->remarks; ?>"
-                                                            data-status="<?php echo $row->status; ?>"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#EditSudent">
-                                                                <i class="fa-duotone fa-solid fa-pen-to-square"></i>
-                                                                <span class="d-none d-sm-inline"> Edit</span>
-                                                            </a>
-
-                                                            <form method="POST" class="d-inline"
-                                                                onsubmit="return confirm('Mark this record as Ready for approval?');">
-                                                                <input type="hidden" name="id" value="<?php echo $row->id; ?>">
-                                                                <button type="submit" name="markReady"
-                                                                    class="btn btn-sm btn-success"
-                                                                    title="Add 'Ready for approval' to remarks">
-                                                                    <i class="fa-duotone fa-solid fa-circle-check"></i>
-                                                                    <span class="d-none d-sm-inline"> Ready</span>
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            <?php
-                                                }
-                                            } else {
-                                                echo '<tr><td colspan="9" class="text-center">No records found</td></tr>';
-                                            }
-                                            ?>
-                                            </tbody>
-
+                                        <!-- Rows are loaded by DataTables from ajax/student_records.php -->
+                                        <tbody></tbody>
                                     </table>
                                 </div>
 

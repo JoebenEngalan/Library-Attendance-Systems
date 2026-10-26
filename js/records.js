@@ -1,16 +1,21 @@
 $(document).on("click", ".edit_data4", function () {
+    // Rows are built by DataTables, so read the data from the row, not from data-* attributes
+    const row = $('#recordTable').DataTable().row($(this).closest('tr')).data();
+    if (!row) return;
 
-    $("#edit_id").val($(this).data("id"));
-    $("#edstudid").val($(this).data("studid"));
-    $("#LName").val($(this).data("lname"));
-    $("#FName").val($(this).data("fname"));
-    $("#editcourse").val($(this).data("course"));
-    $("#edityearlevel").val($(this).data("year"));
+    $("#edit_id").val(row.id);
+    $("#edstudid").val(row.studID);
+    $("#LName").val(row.Lname);
+    $("#FName").val(row.Fname);
+    $("#editcourse").val(row.Course);
+    $("#edityearlevel").val(row.YearLevel);
+    $("#editremarks").val(row.remarks || '');
+    $("#editstatus").val(row.status || 'ACTIVE');
+});
 
-    // NEW FIELDS
-    $("#editremarks").val($(this).data("remarks") || '');
-    $("#editstatus").val($(this).data("status") || 'ACTIVE');
-
+// Replaces the old inline onsubmit="return confirm(...)" on each Ready form
+$(document).on("submit", ".mark-ready-form", function () {
+    return confirm('Mark this record as Ready for approval?');
 });
 
 document.addEventListener("DOMContentLoaded", function() {
