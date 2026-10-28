@@ -302,12 +302,24 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
         try {
             const fd = new FormData();
             fd.append('studid', value);
-            const res  = await fetch('checkStudId.php', { method: 'POST', body: fd });
-            const data = await res.json();
+            const res  = await fetch('pages/checkStudId.php', { method: 'POST', body: fd });
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseErr) {
+                console.error('checkStudId.php did not return JSON. HTTP ' + res.status + ' from ' + res.url + '\nResponse starts with:\n' + text.slice(0, 300));
+                if (reqId === latest) setState('error');
+                return;
+            }
             if (reqId !== latest) return;
-            if (data.error) return setState('error');
+            if (data.error) {
+                console.error('checkStudId.php reported a server error (HTTP ' + res.status + ').');
+                return setState('error');
+            }
             setState(data.exists ? 'exists' : 'available');
         } catch (e) {
+            console.error('ID check request failed:', e);
             if (reqId === latest) setState('error');
         }
     }

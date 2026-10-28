@@ -2,7 +2,11 @@
 session_start();
 error_reporting(0);
 header('Content-Type: application/json');
-include "includes/config.php";
+// Works from the pages/ folder (includes/ one level up) or from the root
+$configPath = file_exists(__DIR__ . '/includes/config.php')
+    ? __DIR__ . '/includes/config.php'
+    : __DIR__ . '/../includes/config.php';
+include $configPath;
 
 // TODO: add your login/session check here (e.g. reject if not logged in)
 
