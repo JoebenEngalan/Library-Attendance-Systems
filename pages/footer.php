@@ -10,7 +10,7 @@
 			<div class="text-muted"><a style="color: #d63384">
 				<span class="d-none d-md-inline">Version : </span>
 				<span class="d-inline d-md-none">Ver : </span>
-					1.5.3
+					1.6.2
 					</a>
 			</div>
 		</div>
