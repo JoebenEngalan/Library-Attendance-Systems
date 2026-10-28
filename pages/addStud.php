@@ -16,7 +16,15 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
 
     $remarks = isset($_POST['AddReady']) ? 'Ready for approval' : null;
 
-    $studid = $_POST['studid'];
+    $studid = trim($_POST['studid']);
+
+    // ID format: [2-digit course code][personal number][2-digit enrollment year]
+    // Digits only, at least 5 digits (2 + 1 + 2), max 14 (studID column size)
+    // Enrollment year (last 2 digits) must be from 2009 (school start) up to the current year.
+    // Older IDs from returning students are accepted as long as they fall in this range.
+    $idFormatOk = preg_match('/^[0-9]{5,14}$/', $studid) === 1;
+    $idYY       = $idFormatOk ? (int) substr($studid, -2) : 0;
+    $idYearOk   = $idFormatOk && $idYY >= 9 && $idYY <= (int) date('y');
 
     // Proper-case Lname/Fname: 'JOSE' -> 'Jose', 'DELA CRUZ' -> 'Dela Cruz'
     $lname = ucwords(strtolower(trim($_POST['inputLName'])));
@@ -28,6 +36,10 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
     // Validate input fields
     if (empty($studid) || empty($lname) || empty($fname) || empty($courses) || empty($yearlevel)) {
         echo '<script>alert("Empty Fields. Please try again")</script>';
+    } elseif (!$idFormatOk) {
+        echo '<script>alert("Invalid Student ID. Use numbers only: 2-digit course code + personal number + 2-digit enrollment year.")</script>';
+    } elseif (!$idYearOk) {
+        echo '<script>alert("Invalid Student ID. The last 2 digits (enrollment year) must be from 09 (2009) up to the current year.")</script>';
     } else {
         try {
 
@@ -135,17 +147,20 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
                         </div>
 
                         <!-- Student ID -->
-                        <div class="input-group input-group-lg mb-3">
+                        <div class="input-group input-group-lg mb-1">
                             <span class="input-group-text bg-light border-end-0">
                                 <i class="fa-duotone fa-solid fa-hashtag text-muted"></i>
                             </span>
                             <div class="form-floating">
                                 <input class="form-control border-start-0" name="studid" id="studid" type="text" 
                                 autocomplete="off" placeholder="Student ID" required 
-                                onkeydown="return /[a-zA-Z0-9]+/i.test(event.key) || ['Delete','ArrowLeft','ArrowRight'].includes(event.key)"/>
+                                inputmode="numeric" maxlength="14" title="Course code (2 digits) + personal number + enrollment year (2 digits)"
+                                onkeydown="return /^[0-9]$/.test(event.key) || event.ctrlKey || event.metaKey || ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(event.key)"/>
                                 <label for="studid">Student ID</label>
                             </div>
                         </div>
+                        <!-- Live ID check feedback -->
+                        <div id="studidFeedback" class="small mb-3" style="min-height:1.25rem;" aria-live="polite"></div>
 
                         <!-- Last Name -->
                         <div class="input-group input-group-lg mb-3">
@@ -216,11 +231,11 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
                         <button type="button" class="btn btn-light border text-nowrap" data-bs-dismiss="modal">
                             <i class="fa-duotone fa-solid fa-xmark me-1"></i> Close
                         </button>
-                        <button class="btn btn-primary d-flex align-items-center gap-2 text-nowrap" type="submit" name="Add" value="Add"
+                        <button class="btn btn-primary d-flex align-items-center gap-2 text-nowrap" type="submit" name="Add" value="Add" id="btnSave"
                                 style="background: linear-gradient(135deg, #22b573 0%, #16a085 100%); border:none;">
                             <i class="fa-duotone fa-solid fa-floppy-disk"></i> Save
                         </button>
-                        <button class="btn btn-success d-flex align-items-center gap-2 text-nowrap" type="submit" name="AddReady" value="AddReady">
+                        <button class="btn btn-success d-flex align-items-center gap-2 text-nowrap" type="submit" name="AddReady" value="AddReady" id="btnSaveReady">
                             <i class="fa-duotone fa-solid fa-circle-check"></i> Save & Mark Ready
                         </button>
                     </div>
@@ -230,3 +245,96 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
         </div>
     </div>
 </div>
+
+<script>
+// Live check: does this Student ID already exist?
+(function () {
+    const modal    = document.getElementById('Addstudent');
+    const input    = document.getElementById('studid');
+    const feedback = document.getElementById('studidFeedback');
+    const saveBtns = [document.getElementById('btnSave'), document.getElementById('btnSaveReady')];
+    let timer = null;
+    let latest = 0; // ignore out-of-date responses
+
+    function setButtons(disabled) {
+        saveBtns.forEach(b => { if (b) b.disabled = disabled; });
+    }
+
+    function setState(state) {
+        input.classList.remove('is-invalid', 'is-valid');
+        switch (state) {
+            case 'checking':
+                feedback.innerHTML = '<span class="text-muted">Checking ID...</span>';
+                setButtons(false);
+                break;
+            case 'exists':
+                input.classList.add('is-invalid');
+                feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> This Student ID already exists.</span>';
+                setButtons(true);
+                break;
+            case 'available':
+                input.classList.add('is-valid');
+                feedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check"></i> ID is available.</span>';
+                setButtons(false);
+                break;
+            case 'incomplete':
+                input.classList.add('is-invalid');
+                feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Format: 2-digit course code + personal number + 2-digit year (e.g. 2890909126).</span>';
+                setButtons(true);
+                break;
+            case 'badyear':
+                input.classList.add('is-invalid');
+                feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> The last 2 digits (enrollment year) must be from 09 (2009) up to the current year.</span>';
+                setButtons(true);
+                break;
+            case 'error':
+                feedback.innerHTML = '<span class="text-warning">Could not check the ID right now. It will be verified when you save.</span>';
+                setButtons(false);
+                break;
+            default: // reset
+                feedback.innerHTML = '';
+                setButtons(false);
+        }
+    }
+
+    async function check(value) {
+        const reqId = ++latest;
+        try {
+            const fd = new FormData();
+            fd.append('studid', value);
+            const res  = await fetch('checkStudId.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (reqId !== latest) return;
+            if (data.error) return setState('error');
+            setState(data.exists ? 'exists' : 'available');
+        } catch (e) {
+            if (reqId === latest) setState('error');
+        }
+    }
+
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        // Strip anything that isn't a digit (covers pasted text)
+        input.value = input.value.replace(/\D/g, '');
+        const value = input.value;
+        if (!value) { latest++; setState('reset'); return; }
+
+        // Format: 2-digit course + personal number (1+ digits) + 2-digit year
+        if (value.length < 5) { latest++; setState('incomplete'); return; }
+
+        // Enrollment year: 2009 (school start) up to the current year
+        const yy = parseInt(value.slice(-2), 10);
+        const currentYY = new Date().getFullYear() % 100;
+        if (yy < 9 || yy > currentYY) { latest++; setState('badyear'); return; }
+        setState('checking');
+        timer = setTimeout(() => check(value), 400); // wait for typing to pause
+    });
+
+    // Clear the check state whenever the modal is closed
+    modal.addEventListener('hidden.bs.modal', function () {
+        clearTimeout(timer);
+        latest++;
+        setState('reset');
+    });
+})();
+</script>
