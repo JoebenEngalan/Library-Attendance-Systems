@@ -18,14 +18,6 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
 
     $studid = trim($_POST['studid']);
 
-    // ID format: [2-digit course code][personal number][2-digit enrollment year]
-    // Digits only, at least 5 digits (2 + 1 + 2), max 14 (studID column size)
-    // Enrollment year (last 2 digits) must be from 2009 (school start) up to the current year.
-    // Older IDs from returning students are accepted as long as they fall in this range.
-    $idFormatOk = preg_match('/^[0-9]{5,14}$/', $studid) === 1;
-    $idYY       = $idFormatOk ? (int) substr($studid, -2) : 0;
-    $idYearOk   = $idFormatOk && $idYY >= 9 && $idYY <= (int) date('y');
-
     // Proper-case Lname/Fname: 'JOSE' -> 'Jose', 'DELA CRUZ' -> 'Dela Cruz'
     $lname = ucwords(strtolower(trim($_POST['inputLName'])));
     $fname = ucwords(strtolower(trim($_POST['inputFName'])));
@@ -33,11 +25,29 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
     $courses = $_POST['course'];
     $yearlevel = $_POST['yearlevel'];
 
+    // "Library Visitor" does not use the standard student ID, so it skips the format rules.
+    // (Matches any course whose abbreviation contains "visitor", case-insensitive.)
+    $isVisitor = stripos((string) $courses, 'visitor') !== false;
+
+    if ($isVisitor) {
+        // Visitor ID: letters/numbers only, max 14 characters (studID column size)
+        $idFormatOk = preg_match('/^[A-Za-z0-9]{1,14}$/', $studid) === 1;
+        $idYearOk   = true;
+    } else {
+        // Student ID: [2-digit course code][personal number][2-digit enrollment year]
+        // Digits only, 5 to 14 digits; year (last 2 digits) from 09 (2009) up to the current year
+        $idFormatOk = preg_match('/^[0-9]{5,14}$/', $studid) === 1;
+        $idYY       = $idFormatOk ? (int) substr($studid, -2) : 0;
+        $idYearOk   = $idFormatOk && $idYY >= 9 && $idYY <= (int) date('y');
+    }
+
     // Validate input fields
     if (empty($studid) || empty($lname) || empty($fname) || empty($courses) || empty($yearlevel)) {
         echo '<script>alert("Empty Fields. Please try again")</script>';
     } elseif (!$idFormatOk) {
-        echo '<script>alert("Invalid Student ID. Use numbers only: 2-digit course code + personal number + 2-digit enrollment year.")</script>';
+        echo $isVisitor
+            ? '<script>alert("Invalid Visitor ID. Use letters and numbers only (max 14 characters).")</script>'
+            : '<script>alert("Invalid Student ID. Use numbers only: 2-digit course code + personal number + 2-digit enrollment year.")</script>';
     } elseif (!$idYearOk) {
         echo '<script>alert("Invalid Student ID. The last 2 digits (enrollment year) must be from 09 (2009) up to the current year.")</script>';
     } else {
@@ -154,8 +164,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
                             <div class="form-floating">
                                 <input class="form-control border-start-0" name="studid" id="studid" type="text" 
                                 autocomplete="off" placeholder="Student ID" required 
-                                inputmode="numeric" maxlength="14" title="Course code (2 digits) + personal number + enrollment year (2 digits)"
-                                onkeydown="return /^[0-9]$/.test(event.key) || event.ctrlKey || event.metaKey || ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(event.key)"/>
+                                inputmode="numeric" maxlength="14" title="Course code (2 digits) + personal number + enrollment year (2 digits)"/>
                                 <label for="studid">Student ID</label>
                             </div>
                         </div>
@@ -251,10 +260,20 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
 (function () {
     const modal    = document.getElementById('Addstudent');
     const input    = document.getElementById('studid');
+    const course   = document.getElementById('course');
     const feedback = document.getElementById('studidFeedback');
     const saveBtns = [document.getElementById('btnSave'), document.getElementById('btnSaveReady')];
     let timer = null;
     let latest = 0; // ignore out-of-date responses
+
+    // "Library Visitor" doesn't use the standard student ID format
+    function isVisitor() {
+        return course.value.toLowerCase().includes('visitor');
+    }
+
+    function applyIdMode() {
+        input.inputMode = isVisitor() ? 'text' : 'numeric';
+    }
 
     function setButtons(disabled) {
         saveBtns.forEach(b => { if (b) b.disabled = disabled; });
@@ -324,22 +343,42 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
         }
     }
 
-    input.addEventListener('input', function () {
+    function validate() {
         clearTimeout(timer);
-        // Strip anything that isn't a digit (covers pasted text)
-        input.value = input.value.replace(/\D/g, '');
+        const visitor = isVisitor();
+
+        // Student: digits only. Visitor: letters and numbers.
+        input.value = input.value.replace(visitor ? /[^A-Za-z0-9]/g : /\D/g, '');
         const value = input.value;
         if (!value) { latest++; setState('reset'); return; }
 
-        // Format: 2-digit course + personal number (1+ digits) + 2-digit year
-        if (value.length < 5) { latest++; setState('incomplete'); return; }
+        if (!visitor) {
+            // Format: 2-digit course + personal number (1+ digits) + 2-digit year
+            if (value.length < 5) { latest++; setState('incomplete'); return; }
 
-        // Enrollment year: 2009 (school start) up to the current year
-        const yy = parseInt(value.slice(-2), 10);
-        const currentYY = new Date().getFullYear() % 100;
-        if (yy < 9 || yy > currentYY) { latest++; setState('badyear'); return; }
+            // Enrollment year: 2009 (school start) up to the current year
+            const yy = parseInt(value.slice(-2), 10);
+            const currentYY = new Date().getFullYear() % 100;
+            if (yy < 9 || yy > currentYY) { latest++; setState('badyear'); return; }
+        }
+
         setState('checking');
         timer = setTimeout(() => check(value), 400); // wait for typing to pause
+    }
+
+    // Block keys that don't belong in the ID (letters are allowed only for visitors)
+    input.addEventListener('keydown', function (e) {
+        if (e.ctrlKey || e.metaKey) return;
+        const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End','Enter'];
+        if (allowed.includes(e.key) || e.key.length > 1) return;
+        const ok = isVisitor() ? /^[A-Za-z0-9]$/.test(e.key) : /^[0-9]$/.test(e.key);
+        if (!ok) e.preventDefault();
+    });
+
+    input.addEventListener('input', validate);
+    course.addEventListener('change', function () {
+        applyIdMode();
+        validate();
     });
 
     // Clear the check state whenever the modal is closed
