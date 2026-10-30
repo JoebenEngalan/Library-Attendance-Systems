@@ -38,7 +38,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
         // Personal number = digits, optionally ending in one letter (e.g. 289949A23)
         // Total 5 to 14 characters; year (last 2 digits) from 09 (2009) up to the current year
         $studid     = strtoupper($studid);
-        $idFormatOk = strlen($studid) <= 14 && preg_match('/^[0-9]{2}[0-9]+[A-Z]?[0-9]{2}$/', $studid) === 1;
+        $idFormatOk = strlen($studid) <= 14 && preg_match('/^[0-9]{2}[0-9]+[A-C]?[0-9]{2}$/', $studid) === 1;
         $idYY       = $idFormatOk ? (int) substr($studid, -2) : 0;
         $idYearOk   = $idFormatOk && $idYY >= 9 && $idYY <= (int) date('y');
     }
@@ -49,7 +49,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
     } elseif (!$idFormatOk) {
         echo $isVisitor
             ? '<script>alert("Invalid Visitor ID. Use letters and numbers only (max 14 characters).")</script>'
-            : '<script>alert("Invalid Student ID. Use: 2-digit course code + personal number (numbers, may end in one letter like A) + 2-digit enrollment year.")</script>';
+            : '<script>alert("Invalid Student ID. Use: 2-digit course code + personal number (numbers, may end in A, B or C) + 2-digit enrollment year.")</script>';
     } elseif (!$idYearOk) {
         echo '<script>alert("Invalid Student ID. The last 2 digits (enrollment year) must be from 09 (2009) up to the current year.")</script>';
     } else {
@@ -300,7 +300,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
                 break;
             case 'incomplete':
                 input.classList.add('is-invalid');
-                feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Format: 2-digit course code + personal number + 2-digit year (the personal number may end in one letter, e.g. 2890909126 or 289949A23).</span>';
+                feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Format: 2-digit course code + personal number + 2-digit year (the personal number may end in A, B or C, e.g. 2890909126 or 289949A23).</span>';
                 setButtons(true);
                 break;
             case 'badyear':
@@ -357,7 +357,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
 
         if (!visitor) {
             // Format: 2-digit course + personal number (digits, may end in one letter) + 2-digit year
-            if (!/^[0-9]{2}[0-9]+[A-Z]?[0-9]{2}$/.test(value)) { latest++; setState('incomplete'); return; }
+            if (!/^[0-9]{2}[0-9]+[A-C]?[0-9]{2}$/.test(value)) { latest++; setState('incomplete'); return; }
 
             // Enrollment year: 2009 (school start) up to the current year
             const yy = parseInt(value.slice(-2), 10);
