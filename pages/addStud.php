@@ -35,8 +35,10 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
         $idYearOk   = true;
     } else {
         // Student ID: [2-digit course code][personal number][2-digit enrollment year]
-        // Digits only, 5 to 14 digits; year (last 2 digits) from 09 (2009) up to the current year
-        $idFormatOk = preg_match('/^[0-9]{5,14}$/', $studid) === 1;
+        // Personal number = digits, optionally ending in one letter (e.g. 289949A23)
+        // Total 5 to 14 characters; year (last 2 digits) from 09 (2009) up to the current year
+        $studid     = strtoupper($studid);
+        $idFormatOk = strlen($studid) <= 14 && preg_match('/^[0-9]{2}[0-9]+[A-Z]?[0-9]{2}$/', $studid) === 1;
         $idYY       = $idFormatOk ? (int) substr($studid, -2) : 0;
         $idYearOk   = $idFormatOk && $idYY >= 9 && $idYY <= (int) date('y');
     }
@@ -47,7 +49,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
     } elseif (!$idFormatOk) {
         echo $isVisitor
             ? '<script>alert("Invalid Visitor ID. Use letters and numbers only (max 14 characters).")</script>'
-            : '<script>alert("Invalid Student ID. Use numbers only: 2-digit course code + personal number + 2-digit enrollment year.")</script>';
+            : '<script>alert("Invalid Student ID. Use: 2-digit course code + personal number (numbers, may end in one letter like A) + 2-digit enrollment year.")</script>';
     } elseif (!$idYearOk) {
         echo '<script>alert("Invalid Student ID. The last 2 digits (enrollment year) must be from 09 (2009) up to the current year.")</script>';
     } else {
@@ -164,7 +166,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
                             <div class="form-floating">
                                 <input class="form-control border-start-0" name="studid" id="studid" type="text" 
                                 autocomplete="off" placeholder="Student ID" required 
-                                inputmode="numeric" maxlength="14" title="Course code (2 digits) + personal number + enrollment year (2 digits)"/>
+                                inputmode="text" maxlength="14" title="Course code (2 digits) + personal number (may end in a letter) + enrollment year (2 digits)"/>
                                 <label for="studid">Student ID</label>
                             </div>
                         </div>
@@ -272,7 +274,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
     }
 
     function applyIdMode() {
-        input.inputMode = isVisitor() ? 'text' : 'numeric';
+        input.inputMode = 'text';
     }
 
     function setButtons(disabled) {
@@ -298,7 +300,7 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
                 break;
             case 'incomplete':
                 input.classList.add('is-invalid');
-                feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Format: 2-digit course code + personal number + 2-digit year (e.g. 2890909126).</span>';
+                feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Format: 2-digit course code + personal number + 2-digit year (the personal number may end in one letter, e.g. 2890909126 or 289949A23).</span>';
                 setButtons(true);
                 break;
             case 'badyear':
@@ -347,14 +349,15 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
         clearTimeout(timer);
         const visitor = isVisitor();
 
-        // Student: digits only. Visitor: letters and numbers.
-        input.value = input.value.replace(visitor ? /[^A-Za-z0-9]/g : /\D/g, '');
+        // Letters and numbers only; student IDs are stored in capitals
+        input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+        if (!visitor) input.value = input.value.toUpperCase();
         const value = input.value;
         if (!value) { latest++; setState('reset'); return; }
 
         if (!visitor) {
-            // Format: 2-digit course + personal number (1+ digits) + 2-digit year
-            if (value.length < 5) { latest++; setState('incomplete'); return; }
+            // Format: 2-digit course + personal number (digits, may end in one letter) + 2-digit year
+            if (!/^[0-9]{2}[0-9]+[A-Z]?[0-9]{2}$/.test(value)) { latest++; setState('incomplete'); return; }
 
             // Enrollment year: 2009 (school start) up to the current year
             const yy = parseInt(value.slice(-2), 10);
@@ -366,12 +369,12 @@ if (isset($_POST['Add']) || isset($_POST['AddReady'])) {
         timer = setTimeout(() => check(value), 400); // wait for typing to pause
     }
 
-    // Block keys that don't belong in the ID (letters are allowed only for visitors)
+    // Block symbols and spaces in the ID (letters and numbers only)
     input.addEventListener('keydown', function (e) {
         if (e.ctrlKey || e.metaKey) return;
         const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End','Enter'];
         if (allowed.includes(e.key) || e.key.length > 1) return;
-        const ok = isVisitor() ? /^[A-Za-z0-9]$/.test(e.key) : /^[0-9]$/.test(e.key);
+        const ok = /^[A-Za-z0-9]$/.test(e.key);
         if (!ok) e.preventDefault();
     });
 
